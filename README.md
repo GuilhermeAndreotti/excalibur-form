@@ -1,4 +1,8 @@
-# ExcaliburForm
+<p align="center">
+	<img src="assets/logo.svg" width="180" alt="Ícone do ExcaliburForm: espada com guarda dourada e runa de check atravessando um formulário, dentro de um círculo mágico" />
+</p>
+
+<h1 align="center">ExcaliburForm</h1>
 
 **Formulários dinâmicos como dados.** Você descreve o formulário em JSON (dá pra salvar no banco, editar num painel, versionar), e a lib valida esse schema, decide quais campos aparecem, valida as respostas e devolve os dados tipados. O mesmo código roda no front e no back.
 
