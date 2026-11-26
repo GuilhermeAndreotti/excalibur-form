@@ -1,5 +1,5 @@
 <p align="center">
-	<img src="assets/logo.svg" width="180" alt="Ícone do ExcaliburForm: espada com guarda dourada e runa de check atravessando um formulário, dentro de um círculo mágico" />
+	<img src="assets/logo.svg" width="180" alt="Ícone do ExcaliburForm: formulário com checkboxes na frente de uma espada de guarda dourada, dentro de um círculo mágico" />
 </p>
 
 <h1 align="center">ExcaliburForm</h1>

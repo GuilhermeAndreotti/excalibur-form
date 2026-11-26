@@ -80,34 +80,19 @@
 			<path d="M126.3 401.1 L122 399.8 L118 398.7 L114.2 397.4 L110.5 396.1 L107.1 394.7 L103.9 393.2 L100.8 391.6 L98 389.9 L95.5 388.1 L93.1 386.2 L91 384.3 L89 382.4 L87.3 380.3 L85.8 378.2 L84.4 376.1 L83.2 373.9 L82.2 371.7 L81.4 369.4 L80.7 367 L80.2 364.5 L79.8 362 L79.5 359.4 L79.4 356.6 L79.5 353.8 L79.6 350.8 L80 347.7 L80.5 344.5 L81.2 341.2 L82 337.8 L83.1 334.3 L84.3 330.6 L85.6 326.9 L87.2 323.1 L88.9 319.1 L90.8 315.1 L92.8 311 L95.1 306.9 L97.5 302.6 L100.1 298.3 L102.8 293.9 L105.7 289.5 L108.8 285 L112.1 280.4 L115.5 275.9 L119 271.3 L122.8 266.6 L126.6 261.9 L130.6 257.3 L134.8 252.6 L139 247.8 L143.5 243.1 L148 238.4 L152.7 233.7 L157.4 229 L162.3 224.3 L167.3 219.6 L172.4 214.9 L177.6 210.3 L182.8 205.6 L188 200.8 L188 200.8 L181.8 204.2 L175.8 207.9 L169.9 211.7 L164.1 215.6 L158.4 219.6 L152.9 223.6 L147.4 227.7 L142.1 231.9 L136.9 236.1 L131.9 240.4 L127 244.7 L122.2 249.1 L117.5 253.5 L113.1 257.9 L108.7 262.3 L104.6 266.8 L100.6 271.2 L96.8 275.7 L93.1 280.2 L89.7 284.7 L86.4 289.2 L83.3 293.7 L80.4 298.2 L77.7 302.7 L75.2 307.1 L72.9 311.5 L70.8 315.9 L69 320.3 L67.3 324.7 L65.9 329 L64.7 333.2 L63.7 337.5 L62.9 341.6 L62.4 345.7 L62.2 349.8 L62.2 353.7 L62.4 357.6 L62.9 361.4 L63.7 365.1 L64.7 368.7 L65.9 372.1 L67.5 375.4 L69.2 378.5 L71.2 381.5 L73.5 384.2 L75.9 386.8 L78.6 389.2 L81.4 391.3 L84.4 393.2 L87.5 395 L90.8 396.5 L94.3 397.8 L97.8 398.9 L101.5 399.8 L105.4 400.6 L109.3 401.1 L113.4 401.4 L117.6 401.6 L121.9 401.5 L126.3 401.1 Z" />
 		</g>
 
-		<!-- formulário -->
-		<g filter="url(#shadow)">
-			<rect x="112" y="142" width="288" height="220" rx="18" fill="url(#card)" />
-		</g>
-		<rect x="128" y="160" width="256" height="186" rx="10" fill="#d9d7e8" opacity="0.55" />
-		<rect x="142" y="186" width="42" height="40" rx="8" fill="#4655c4" />
-		<path d="M152 206 l8 8 l15 -16" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
-		<rect x="144" y="246" width="38" height="36" rx="7" fill="none" stroke="#5f5f8c" stroke-width="3.5" />
-		<rect x="144" y="298" width="38" height="36" rx="7" fill="none" stroke="#5f5f8c" stroke-width="3.5" />
-		<g fill="#8f8db0">
-			<rect x="198" y="196" width="174" height="21" rx="7" />
-			<rect x="198" y="253" width="174" height="21" rx="7" />
-			<rect x="198" y="305" width="174" height="21" rx="7" />
-		</g>
-
 		<!-- raio de luz vertical -->
 		<g filter="url(#glow)">
 			<rect x="254.5" y="6" width="3" height="500" fill="#fff3c8" opacity="0.55" />
 		</g>
 
-		<!-- espada -->
-		<g>
+		<!-- espada (atrás do formulário) -->
+		<g transform="translate(0 -14)">
 			<!-- lâmina: brilho embaixo, lâmina nítida por cima -->
-			<path d="M230 166 L282 166 L280 372 L256 464 L232 372 Z" fill="#ffe7a0" opacity="0.9" filter="url(#blur)" />
-			<path d="M234 166 L278 166 L276 374 L256 458 L236 374 Z" fill="url(#blade)" stroke="#d9ad4c" stroke-width="1.5" stroke-linejoin="round" />
-			<path d="M256 166 L256 458 L236 374 L234 166 Z" fill="#f4e2b0" opacity="0.35" />
+			<path d="M230 166 L282 166 L280 400 L256 494 L232 400 Z" fill="#ffe7a0" opacity="0.9" filter="url(#blur)" />
+			<path d="M234 166 L278 166 L276 402 L256 488 L236 402 Z" fill="url(#blade)" stroke="#d9ad4c" stroke-width="1.5" stroke-linejoin="round" />
+			<path d="M256 166 L256 488 L236 402 L234 166 Z" fill="#f4e2b0" opacity="0.35" />
 			<!-- sulco central azul -->
-			<path d="M252 226 Q256 220 260 226 L259 380 L256 392 L253 380 Z" fill="url(#royal)" opacity="0.85" />
+			<path d="M252 226 Q256 220 260 226 L259 420 L256 436 L253 420 Z" fill="url(#royal)" opacity="0.85" />
 			<!-- runa de check gravada -->
 			<path d="M247 198 l6 7 l11 -14" fill="none" stroke="#c99a2e" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" />
 
@@ -141,6 +126,24 @@
 			<circle cx="256" cy="54" r="12" fill="none" stroke="#fff1bf" stroke-width="1.4" opacity="0.7" />
 			<circle cx="256" cy="54" r="7" fill="#3b4fc4" stroke="#fff0b8" stroke-width="1.6" />
 			<circle cx="253.5" cy="51.5" r="2.2" fill="#c9d3ff" opacity="0.85" />
+		</g>
+
+		<!-- formulário (na frente da espada) -->
+		<g>
+		<g filter="url(#shadow)">
+			<rect x="112" y="142" width="288" height="220" rx="18" fill="url(#card)" />
+		</g>
+		<rect x="128" y="160" width="256" height="186" rx="10" fill="#d9d7e8" opacity="0.55" />
+		<rect x="142" y="186" width="42" height="40" rx="8" fill="#4655c4" />
+		<path d="M152 206 l8 8 l15 -16" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+		<rect x="144" y="246" width="38" height="36" rx="7" fill="none" stroke="#5f5f8c" stroke-width="3.5" />
+		<rect x="144" y="298" width="38" height="36" rx="7" fill="none" stroke="#5f5f8c" stroke-width="3.5" />
+		<g fill="#8f8db0">
+			<rect x="198" y="196" width="174" height="21" rx="7" />
+			<rect x="198" y="253" width="174" height="21" rx="7" />
+			<rect x="198" y="305" width="174" height="21" rx="7" />
+		</g>
+
 		</g>
 
 		<!-- brilhos -->
