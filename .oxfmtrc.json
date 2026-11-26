@@ -1,0 +1,16 @@
+{
+	"singleQuote": true,
+	"trailingComma": "all",
+	"useTabs": true,
+	"tabWidth": 4,
+	"printWidth": 80,
+	"ignorePatterns": [
+		"pnpm-lock.yaml",
+		"pnpm-workspace.yaml",
+		"dist/**",
+		"coverage/**",
+		"node_modules/**",
+		".changeset/*.md"
+	],
+	"sortImports": true
+}

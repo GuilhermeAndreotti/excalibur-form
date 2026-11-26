@@ -1,0 +1,35 @@
+name: CI
+
+on:
+    pull_request:
+    push:
+        branches: [main]
+
+permissions:
+    contents: read
+
+concurrency:
+    group: ci-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    quality:
+        name: Formato, lint e tipos
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - uses: actions/checkout@v4
+            - uses: ./.github/actions/setup-node-pnpm
+            - run: pnpm run format:check
+            - run: pnpm run lint
+            - run: pnpm run typecheck
+
+    test:
+        name: Testes e build
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - uses: actions/checkout@v4
+            - uses: ./.github/actions/setup-node-pnpm
+            - run: pnpm run test:cov
+            - run: pnpm run build

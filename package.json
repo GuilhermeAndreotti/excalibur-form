@@ -1,0 +1,31 @@
+{
+	"name": "excalibur-form",
+	"private": true,
+	"description": "Formulários dinâmicos como dados: schema em JSON, validação igual no front e no back, exportação em vários formatos.",
+	"license": "MIT",
+	"type": "module",
+	"scripts": {
+		"dev": "pnpm --filter @excalibur-form/demo run dev",
+		"build": "pnpm -r run build",
+		"format": "oxfmt .",
+		"format:check": "oxfmt . --check",
+		"lint": "oxlint",
+		"typecheck": "pnpm -r run typecheck",
+		"test": "pnpm -r run test",
+		"test:cov": "pnpm -r run test:cov",
+		"changeset": "changeset",
+		"release": "pnpm run build && changeset publish",
+		"check": "pnpm run format:check && pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run build"
+	},
+	"devDependencies": {
+		"@changesets/cli": "^3.0.3",
+		"oxfmt": "^0.80.0",
+		"oxlint": "^1.95.0",
+		"oxlint-tsgolint": "^7.0.2008",
+		"typescript": "^7.0.2"
+	},
+	"engines": {
+		"node": ">=24"
+	},
+	"packageManager": "pnpm@12.16.1"
+}

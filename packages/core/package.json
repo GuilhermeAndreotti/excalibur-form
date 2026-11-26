@@ -1,0 +1,35 @@
+{
+	"name": "@excalibur-form/core",
+	"version": "0.0.0",
+	"description": "Núcleo do ExcaliburForm: schema de formulário em JSON, tipos de campo, condições e validação. Sem dependências, roda em Node e no browser.",
+	"license": "MIT",
+	"files": [
+		"dist",
+		"src",
+		"!src/**/*.test.ts"
+	],
+	"type": "module",
+	"sideEffects": false,
+	"exports": {
+		".": {
+			"@excalibur-form/source": "./src/index.ts",
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"scripts": {
+		"build": "rm -rf dist && tsc -p tsconfig.build.json",
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"test:cov": "vitest run --coverage"
+	},
+	"devDependencies": {
+		"@vitest/coverage-v8": "^5.1.2",
+		"typescript": "^7.0.2",
+		"vitest": "^5.1.2"
+	},
+	"engines": {
+		"node": ">=20.19"
+	}
+}

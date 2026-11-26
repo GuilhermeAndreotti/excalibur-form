@@ -1,0 +1,44 @@
+{
+	"options": {
+		"typeAware": true,
+		"maxWarnings": 0
+	},
+	"plugins": ["typescript", "import", "oxc", "vitest", "react"],
+	"categories": {
+		"correctness": "warn",
+		"suspicious": "warn",
+		"perf": "warn",
+		"style": "off"
+	},
+	"rules": {
+		"typescript/no-floating-promises": "warn",
+		"typescript/no-misused-promises": "warn",
+		"typescript/no-explicit-any": "warn",
+		"typescript/no-unused-vars": "warn",
+		"typescript/no-unsafe-type-assertion": "off",
+		"react/rules-of-hooks": "error",
+		"react/react-in-jsx-scope": "off",
+		"react/only-export-components": [
+			"warn",
+			{
+				"allowConstantExport": true
+			}
+		],
+		"typescript/consistent-return": "off",
+		"import/no-unassigned-import": [
+			"warn",
+			{
+				"allow": ["**/*.css"]
+			}
+		]
+	},
+	"ignorePatterns": ["**/dist/**", "**/coverage/**", "**/node_modules/**"],
+	"overrides": [
+		{
+			"files": ["apps/**"],
+			"env": {
+				"browser": true
+			}
+		}
+	]
+}
