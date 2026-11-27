@@ -15,9 +15,9 @@ schema (JSON) ──► parseForm / defineForm ──► form
 - **Zero dependências**, roda em Node, browser, edge, React Native…
 - **TypeScript primeiro**: o tipo das respostas é inferido do schema.
 - **Seguro pra schema vindo de usuário**: tudo é validado e limitado, sem `eval` e sem regex vinda de fora.
-- **Headless**: não renderiza nada, então funciona com qualquer UI.
+- **Headless**: o core não renderiza nada, então funciona com qualquer UI. Pra React tem o `@excalibur-form/react` (hook + renderer sem estilo).
 
-> **Status:** em desenvolvimento (fase 2 de 6, veja o [roadmap](docs/PLAN.md)). O core funciona e é testado, mas ainda não está publicado no npm e a API pode mudar.
+> **Status:** em desenvolvimento (fase 3 de 6, veja o [roadmap](docs/PLAN.md)). O core funciona e é testado, mas ainda não está publicado no npm e a API pode mudar.
 
 ---
 
@@ -34,7 +34,7 @@ schema (JSON) ──► parseForm / defineForm ──► form
 - [Erros de schema](#erros-de-schema)
 - [Tipos inferidos](#tipos-inferidos)
 - [Textos em vários idiomas](#textos-em-vários-idiomas)
-- [Renderizando o form (exemplo em React)](#renderizando-o-form-exemplo-em-react)
+- [React (`@excalibur-form/react`)](#react-excalibur-formreact)
 - [Usando no backend](#usando-no-backend)
 - [Exportando respostas](#exportando-respostas)
 - [Tipos de campo customizados](#tipos-de-campo-customizados)
@@ -64,7 +64,7 @@ Exemplos: checklists de vistoria, anamnese, pesquisas de satisfação, onboardin
 
 ## Rodando a demo
 
-O repositório tem uma demo onde você edita o schema em JSON e vê o formulário, as condições e a validação mudando ao vivo.
+O repositório tem uma demo onde você edita o schema em JSON e vê o formulário (renderizado pelo `@excalibur-form/react`), as condições, a validação e as exportações mudando ao vivo.
 
 Pré-requisitos: **Node 24+** e **pnpm** (`corepack enable` já instala a versão certa).
 
@@ -81,7 +81,7 @@ Abra http://localhost:5173. Tem três exemplos prontos (vistoria de veículo, fi
 
 ## Instalação
 
-O pacote ainda não está no npm. Por enquanto, pra usar em outro projeto:
+Os pacotes ainda não estão no npm. Por enquanto, pra usar em outro projeto:
 
 ```bash
 git clone https://github.com/GuilhermeAndreotti/excalibur-form.git
@@ -92,15 +92,17 @@ E no seu projeto, aponte pra pasta do pacote:
 
 ```bash
 pnpm add /caminho/para/excalibur-form/packages/core
+pnpm add /caminho/para/excalibur-form/packages/react   # se for usar React
 ```
 
 Quando for publicado, vai ser só:
 
 ```bash
 pnpm add @excalibur-form/core
+pnpm add @excalibur-form/react   # opcional
 ```
 
-O pacote é **ESM** e exige Node 20.19+ (ou qualquer bundler moderno).
+Os pacotes são **ESM** e exige Node 20.19+ (ou qualquer bundler moderno).
 
 ---
 
@@ -626,114 +628,119 @@ resolveText('Texto simples', 'en'); // 'Texto simples'
 
 ---
 
-## Renderizando o form (exemplo em React)
+## React (`@excalibur-form/react`)
 
-A lib não renderiza nada (um pacote `@excalibur-form/react` está no roadmap). Mas montar um renderer é simples: percorra `form.schema.fields`, mostre só os visíveis e faça um `switch` por tipo.
+Pacote opcional com duas peças: um **hook headless** (estado, visibilidade, erros e envio, sem renderizar nada) e um **`<FormRenderer>`** com componentes padrão **sem estilo**, cada um trocável.
+
+```bash
+pnpm add @excalibur-form/react   # quando publicado; peer: react 18 ou 19
+```
+
+### O jeito rápido
 
 ```tsx
-import {
-	resolveText,
-	type BuiltinField,
-	type Form,
-} from '@excalibur-form/core';
-import { useState } from 'react';
+import { defineForm } from '@excalibur-form/core';
+import { FormRenderer } from '@excalibur-form/react';
 
-export function DynamicForm({
-	form,
-	onSubmit,
-}: {
-	form: Form;
-	onSubmit: (data: unknown) => void;
-}) {
-	const [answers, setAnswers] = useState<Record<string, unknown>>({});
-	const [errors, setErrors] = useState<Record<string, string>>({});
-	const set = (id: string, value: unknown) =>
-		setAnswers((prev) => ({ ...prev, [id]: value }));
+const vistoria = defineForm({ ... });
 
-	const visible = form.visibleFieldIds(answers);
-
+export function Vistoria() {
 	return (
-		<form
-			onSubmit={(e) => {
-				e.preventDefault();
-				const result = form.validate(answers);
-				if (result.ok) return onSubmit(result.data);
-				setErrors(
-					Object.fromEntries(
-						result.errors.map((err) => [err.fieldId, err.code]),
-					),
-				);
+		<FormRenderer
+			form={vistoria}
+			locale="pt-BR"
+			onSubmit={async (data) => {
+				// `data` já validado e tipado
+				await fetch('/api/vistorias', {
+					method: 'POST',
+					body: JSON.stringify(data),
+				});
 			}}
-		>
-			{form.schema.fields.map((raw) => {
-				const field = raw as BuiltinField;
-				if (!visible.has(field.id)) return null;
-				const label = resolveText(field.label, 'pt');
-				if (field.type === 'section')
-					return <h3 key={field.id}>{label}</h3>;
-
-				return (
-					<div key={field.id}>
-						<label>{label}</label>
-						{field.type === 'text' && (
-							<input
-								value={(answers[field.id] as string) ?? ''}
-								onChange={(e) => set(field.id, e.target.value)}
-							/>
-						)}
-						{field.type === 'number' && (
-							<input
-								type="number"
-								value={(answers[field.id] as number) ?? ''}
-								// converta: a lib não aceita "5" como número
-								onChange={(e) =>
-									set(
-										field.id,
-										e.target.value === ''
-											? undefined
-											: e.target.valueAsNumber,
-									)
-								}
-							/>
-						)}
-						{field.type === 'boolean' && (
-							<input
-								type="checkbox"
-								checked={answers[field.id] === true}
-								onChange={(e) =>
-									set(field.id, e.target.checked)
-								}
-							/>
-						)}
-						{field.type === 'choice' &&
-							field.options.map((option) => (
-								<label key={option.id}>
-									<input
-										type="radio"
-										checked={
-											answers[field.id] === option.id
-										}
-										onChange={() =>
-											set(field.id, option.id)
-										}
-									/>
-									{resolveText(option.label, 'pt')}
-								</label>
-							))}
-						{/* longText, multiChoice, scale: veja apps/demo/src/FieldInput.tsx */}
-						{errors[field.id] && <small>{errors[field.id]}</small>}
-					</div>
-				);
-			})}
-			<button type="submit">Enviar</button>
-		</form>
+		/>
 	);
 }
 ```
 
-Um renderer completo, com todos os tipos, está em [`apps/demo/src/FieldInput.tsx`](apps/demo/src/FieldInput.tsx).
+O renderer cuida de:
 
-> **Segurança:** renderize labels e descrições sempre como texto (como o React já faz por padrão). Nunca use `dangerouslySetInnerHTML` com textos do schema.
+- mostrar só os campos visíveis (as condições reagem enquanto a pessoa preenche);
+- erros depois que o campo perde o foco, ou de todos ao tentar enviar, e **foco no primeiro campo com erro**;
+- acessibilidade: `<label>` ligado ao input, `<fieldset>`/`<legend>` pra radios e checkboxes, `aria-invalid`, `aria-describedby` apontando pra descrição e pros erros;
+- mensagens de erro padrão em pt, en e es (`formatError` pra usar as suas);
+- desabilitar o form enquanto o `onSubmit` assíncrono roda.
+
+Com schema vindo do banco, monte o `Form` com `parseForm` dentro de um `useMemo` e trate o `ok: false`.
+
+### Trocando componentes
+
+Qualquer tipo pode usar o seu componente; os outros continuam com o padrão.
+
+```tsx
+import type { BooleanField } from '@excalibur-form/core';
+import { FormRenderer, type FieldInputProps } from '@excalibur-form/react';
+
+function Switch({
+	id,
+	value,
+	onChange,
+	onBlur,
+	labels,
+}: FieldInputProps<BooleanField>) {
+	return (
+		<button
+			id={id}
+			type="button"
+			role="switch"
+			aria-checked={value === true}
+			onClick={() => onChange(value !== true)}
+			onBlur={onBlur}
+		>
+			{value === true ? labels.yes : labels.no}
+		</button>
+	);
+}
+
+<FormRenderer
+	form={form}
+	components={{ boolean: Switch, cpf: MeuInputDeCpf }} // tipos customizados entram pelo nome
+	FieldWrapper={MinhaMoldura} // label + descrição + erros
+>
+	<button type="submit">Salvar</button> {/* substitui o botão padrão */}
+</FormRenderer>;
+```
+
+Cada componente recebe `FieldInputProps`: `field`, `id`, `value`, `onChange`, `onBlur`, `invalid`, `required`, `disabled`, `describedBy`, `t` (resolve `LocalizedText`), `labels` ("Sim"/"Não") e `locale`. A `section` recebe `{ field, title, description }`. Componente com vários controles (tipo radios) pode declarar `MeuComponente.group = true` pra moldura padrão usar `<fieldset>`.
+
+Os componentes padrão não trazem CSS, mas têm classes estáveis pra estilizar: `ef-form`, `ef-field` (com `data-invalid` quando há erro), `ef-label`, `ef-required`, `ef-description`, `ef-input`, `ef-options`, `ef-option`, `ef-boolean`, `ef-scale`, `ef-scale-steps`, `ef-scale-label`, `ef-section`, `ef-errors`, `ef-error` e `ef-submit`. A demo tem um exemplo em [`apps/demo/src/styles.css`](apps/demo/src/styles.css).
+
+### Só o hook
+
+Pra montar a UI do zero (ou ler o estado de fora do renderer):
+
+```tsx
+import { useExcaliburForm } from '@excalibur-form/react';
+
+const ctl = useExcaliburForm(form, {
+	initialAnswers: rascunho,
+	onSubmit: salvar,
+	showErrors: 'touched', // 'touched' (padrão) | 'submit' | 'always'
+});
+
+ctl.answers; // respostas cruas (inclusive de campos escondidos agora)
+ctl.visibleFieldIds; // Set
+ctl.result; // form.validate(answers), sempre atualizado
+ctl.errors; // Map fieldId → erros que devem aparecer agora
+ctl.fieldState('placa'); // { field, visible, value, errors, invalid, touched, onChange, onBlur }
+ctl.setAnswer('placa', 'ABC1D23');
+ctl.reset();
+ctl.handleSubmit; // use no onSubmit do <form>
+ctl.isSubmitting;
+ctl.submitCount;
+```
+
+O mesmo `ctl` pode ir pro renderer: `<FormRenderer controller={ctl} />`. É assim que a demo mostra as respostas cruas e o resultado ao lado do form.
+
+> **Segurança:** os componentes padrão renderizam labels e descrições como texto. Se fizer os seus, nunca use `dangerouslySetInnerHTML` com textos do schema.
 
 ---
 
@@ -970,13 +977,27 @@ O que é com você:
 
 `options` = `{ registry?: FieldRegistry; limits?: Partial<SchemaLimits> }`.
 
+**`@excalibur-form/react`**
+
+| Export                                  | O que faz                                                                    |
+| --------------------------------------- | ---------------------------------------------------------------------------- |
+| `useExcaliburForm(form, options?)`      | Estado headless do form; devolve o `controller`                              |
+| `<FormRenderer form \| controller … />` | Renderiza o form inteiro com componentes trocáveis                           |
+| `defaultComponents`                     | Componentes padrão por tipo (`TextInput`, `BooleanInput`… também exportados) |
+| `FieldWrapper` / `Section`              | Moldura e seção padrão                                                       |
+| `defaultErrorMessage(issue, locale?)`   | Mensagem padrão de um erro (pt, en, es)                                      |
+| `FieldInputProps` / `FieldWrapperProps` | Tipos pra escrever componentes próprios                                      |
+
+`options` do hook = `{ initialAnswers?, onSubmit?, onInvalid?, showErrors? }`. O `<FormRenderer>` aceita as mesmas mais `components`, `FieldWrapper`, `locale`, `fallbackLocale`, `labels`, `formatError`, `submitLabel`, `disabled`, `className`, `focusOnError` e `children`.
+
 ---
 
 ## Desenvolvimento
 
 ```
 packages/core   @excalibur-form/core: a lib
-apps/demo       demo em Vite + React
+packages/react  @excalibur-form/react: hook e renderer pra React
+apps/demo       demo em Vite + React (usa o pacote react)
 docs/PLAN.md    plano e roadmap
 ```
 
@@ -989,7 +1010,7 @@ pnpm check          # format + lint + typecheck + testes + build (o mesmo que o 
 pnpm format         # formata (oxfmt)
 ```
 
-Stack: TypeScript 7 (strict, `isolatedDeclarations`, `exactOptionalPropertyTypes`), vitest, oxlint, oxfmt, changesets e GitHub Actions.
+Stack: TypeScript 7 (strict, `isolatedDeclarations`, `exactOptionalPropertyTypes`), vitest (+ Testing Library e jsdom no pacote React), oxlint, oxfmt, changesets e GitHub Actions.
 
 ---
 
@@ -999,7 +1020,7 @@ Stack: TypeScript 7 (strict, `isolatedDeclarations`, `exactOptionalPropertyTypes
 - [x] **Fase 1**: core (schema, 8 tipos de campo, condições, validação, tipos inferidos)
 - [x] Demo
 - [x] **Fase 2**: exportadores (JSON por `key`, lista pergunta/resposta, CSV, FormData, Markdown)
-- [ ] **Fase 3**: `@excalibur-form/react` (renderer headless com componentes trocáveis)
+- [x] **Fase 3**: `@excalibur-form/react` (renderer headless com componentes trocáveis)
 - [ ] **Fase 4**: `@excalibur-form/builder` (montar o form visualmente)
 - [ ] **Fase 5**: versionamento de respostas, docs e publicação no npm
 - [ ] Mais tipos: `date`, `file`/`image`, grupos repetíveis, matriz

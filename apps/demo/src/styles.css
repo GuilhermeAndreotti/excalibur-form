@@ -159,47 +159,47 @@ button:focus-visible {
 	outline-offset: 1px;
 }
 
-.field {
+.ef-field {
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
-	margin-bottom: 18px;
+	margin: 0 0 18px;
+	padding: 0;
+	border: 0;
+	min-width: 0;
 }
 
-.field input[type='text'],
-.field input[type='email'],
-.field input[type='url'],
-.field input[type='number'],
-.field textarea {
+.ef-field .ef-input {
 	width: 100%;
 }
 
-.label {
+.ef-label {
 	font-weight: 600;
+	padding: 0;
+	margin-bottom: 2px;
 }
 
-.required {
+.ef-required {
 	color: var(--danger);
-	margin-left: 3px;
 }
 
-.hint {
+.ef-description {
 	margin: 0;
 	font-size: 0.85rem;
 	color: var(--muted);
 }
 
-.section {
+.ef-section {
 	margin: 24px 0 12px;
 	padding-bottom: 6px;
 	border-bottom: 1px solid var(--border);
 }
 
-.section:first-child {
+.ef-section:first-child {
 	margin-top: 0;
 }
 
-.section h3 {
+.ef-section h3 {
 	margin: 0;
 	font-size: 0.95rem;
 	text-transform: uppercase;
@@ -207,64 +207,92 @@ button:focus-visible {
 	color: var(--accent);
 }
 
-.options {
+.ef-section p {
+	margin: 4px 0 0;
+	font-size: 0.85rem;
+	color: var(--muted);
+}
+
+.ef-options {
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
 }
 
-.option {
+.ef-option {
 	display: flex;
 	align-items: center;
 	gap: 8px;
 	cursor: pointer;
 }
 
-.segmented,
-.scale {
-	display: flex;
-	gap: 6px;
+/* Sim/Não e escala viram botões: o radio continua lá, só fica invisível. */
+.ef-boolean,
+.ef-scale-steps {
+	flex-direction: row;
 	flex-wrap: wrap;
 }
 
-.segmented button,
-.scale button {
-	font: inherit;
-	color: inherit;
-	background: var(--panel);
+.ef-boolean .ef-option,
+.ef-scale-steps .ef-option {
+	position: relative;
+	justify-content: center;
 	border: 1px solid var(--border);
 	border-radius: 8px;
 	padding: 6px 14px;
-	cursor: pointer;
 }
 
-.scale button {
+.ef-scale-steps .ef-option {
 	min-width: 38px;
 	padding: 6px 0;
 }
 
-.segmented button.active,
-.scale button.active {
+.ef-boolean input,
+.ef-scale-steps input {
+	position: absolute;
+	opacity: 0;
+	inset: 0;
+	margin: 0;
+	cursor: pointer;
+}
+
+.ef-boolean .ef-option:has(input:checked),
+.ef-scale-steps .ef-option:has(input:checked) {
 	background: var(--accent-soft);
 	border-color: var(--accent);
 	color: var(--accent);
 	font-weight: 600;
 }
 
-.scale-labels {
-	display: flex;
-	justify-content: space-between;
-	font-size: 0.8rem;
-	color: var(--muted);
-	margin-top: 4px;
+.ef-boolean .ef-option:has(input:focus-visible),
+.ef-scale-steps .ef-option:has(input:focus-visible) {
+	outline: 2px solid var(--accent);
+	outline-offset: 1px;
 }
 
-.field.invalid input,
-.field.invalid textarea {
+.ef-scale {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
+.ef-scale-label {
+	font-size: 0.8rem;
+	color: var(--muted);
+}
+
+.ef-field[data-invalid] .ef-input,
+.ef-field[data-invalid] .ef-boolean .ef-option,
+.ef-field[data-invalid] .ef-scale-steps .ef-option {
 	border-color: var(--danger);
 }
 
-.error {
+.ef-errors:empty {
+	display: none;
+}
+
+.ef-error {
 	margin: 0;
 	font-size: 0.85rem;
 	color: var(--danger);

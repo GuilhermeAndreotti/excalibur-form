@@ -1,0 +1,50 @@
+{
+	"name": "@excalibur-form/react",
+	"version": "0.0.0",
+	"description": "ExcaliburForm pra React: hook headless (estado, visibilidade, erros, submit) e <FormRenderer> com componentes sem estilo e trocáveis.",
+	"license": "MIT",
+	"files": [
+		"dist",
+		"src",
+		"!src/**/*.test.ts",
+		"!src/**/*.test.tsx"
+	],
+	"type": "module",
+	"sideEffects": false,
+	"exports": {
+		".": {
+			"@excalibur-form/source": "./src/index.ts",
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		}
+	},
+	"scripts": {
+		"build": "rm -rf dist && tsc -p tsconfig.build.json",
+		"typecheck": "tsc --noEmit",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"test:cov": "vitest run --coverage"
+	},
+	"dependencies": {
+		"@excalibur-form/core": "workspace:^"
+	},
+	"devDependencies": {
+		"@testing-library/dom": "^10.4.2",
+		"@testing-library/react": "^16.3.3",
+		"@testing-library/user-event": "^14.6.13",
+		"@types/react": "^19.3.3",
+		"@types/react-dom": "^19.3.0",
+		"@vitest/coverage-v8": "^5.1.2",
+		"jsdom": "^31.0.1",
+		"react": "^19.3.1",
+		"react-dom": "^19.3.1",
+		"typescript": "^7.0.2",
+		"vitest": "^5.1.2"
+	},
+	"peerDependencies": {
+		"react": "^18.0.0 || ^19.0.0"
+	},
+	"engines": {
+		"node": ">=20.19"
+	}
+}

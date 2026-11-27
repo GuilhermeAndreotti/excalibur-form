@@ -1,4 +1,5 @@
 import {
+	defineForm,
 	formatPath,
 	parseForm,
 	resolveText,
@@ -7,15 +8,13 @@ import {
 	toJSON,
 	toMarkdown,
 	toQAList,
-	type BuiltinField,
 	type ParseResult,
 	type Form,
 } from '@excalibur-form/core';
+import { FormRenderer, useExcaliburForm } from '@excalibur-form/react';
 import { useMemo, useState } from 'react';
 
 import { EXAMPLES } from './examples.ts';
-import { FieldInput } from './FieldInput.tsx';
-import { errorMessage } from './messages.ts';
 
 const pretty = (value: unknown) => JSON.stringify(value, null, 2);
 
@@ -52,6 +51,9 @@ const EXPORTERS = {
 >;
 
 type Answers = Record<string, unknown>;
+
+// Enquanto não há nenhum schema válido, o hook usa um form vazio.
+const EMPTY_FORM: Form = defineForm({ id: 'vazio', version: 1, fields: [] });
 type ExporterId = keyof typeof EXPORTERS;
 
 function parseText(
@@ -69,10 +71,9 @@ export function App() {
 	const [schemaText, setSchemaText] = useState(() =>
 		pretty(EXAMPLES[0]?.schema),
 	);
-	const [answers, setAnswers] = useState<Record<string, unknown>>({});
-	const [submitted, setSubmitted] = useState(false);
 	const [locale, setLocale] = useState('pt');
 	const [exporter, setExporter] = useState<ExporterId>('qa');
+	const [sent, setSent] = useState(false);
 
 	const parsed = useMemo(() => parseText(schemaText), [schemaText]);
 	// Mantém o último form válido na tela enquanto o JSON está sendo editado.
@@ -80,24 +81,16 @@ export function App() {
 	const form = parsed.ok ? parsed.value : lastForm;
 	if (parsed.ok && parsed.value !== lastForm) setLastForm(parsed.value);
 
-	const visible = form?.visibleFieldIds(answers) ?? new Set<string>();
-	const result = form?.validate(answers);
-	const errorsByField = new Map<string, string[]>();
-	if (result && !result.ok) {
-		for (const error of result.errors) {
-			const key = error.fieldId ?? '';
-			errorsByField.set(key, [
-				...(errorsByField.get(key) ?? []),
-				errorMessage(error),
-			]);
-		}
-	}
+	const controller = useExcaliburForm(form ?? EMPTY_FORM, {
+		onSubmit: () => setSent(true),
+	});
+	const { answers, result, visibleFieldIds: visible } = controller;
 
 	const loadExample = (index: number) => {
 		setExampleIndex(index);
 		setSchemaText(pretty(EXAMPLES[index]?.schema));
-		setAnswers({});
-		setSubmitted(false);
+		controller.reset({});
+		setSent(false);
 	};
 
 	return (
@@ -184,102 +177,32 @@ export function App() {
 							: 'Formulário'}
 					</h2>
 					{form && (
-						<form
-							noValidate
-							onSubmit={(e) => {
-								e.preventDefault();
-								setSubmitted(true);
-							}}
+						<FormRenderer
+							controller={controller}
+							locale={locale}
+							fallbackLocale="pt"
 						>
-							{form.schema.fields.map((raw) => {
-								const field = raw as BuiltinField;
-								if (!visible.has(field.id)) return null;
-								const label = resolveText(
-									field.label,
-									locale,
-									'pt',
-								);
-								const description =
-									field.description &&
-									resolveText(
-										field.description,
-										locale,
-										'pt',
-									);
-								if (field.type === 'section') {
-									return (
-										<div key={field.id} className="section">
-											<h3>{label}</h3>
-											{description && (
-												<p className="hint">
-													{description}
-												</p>
-											)}
-										</div>
-									);
-								}
-								const errors = submitted
-									? errorsByField.get(field.id)
-									: undefined;
-								return (
-									<div
-										key={field.id}
-										className={`field${errors ? ' invalid' : ''}`}
-									>
-										<label
-											htmlFor={field.id}
-											className="label"
-										>
-											{label}
-											{field.required && (
-												<span className="required">
-													*
-												</span>
-											)}
-										</label>
-										{description && (
-											<p className="hint">
-												{description}
-											</p>
-										)}
-										<FieldInput
-											field={field}
-											value={answers[field.id]}
-											locale={locale}
-											onChange={(value) =>
-												setAnswers((prev) => ({
-													...prev,
-													[field.id]: value,
-												}))
-											}
-										/>
-										{errors?.map((message) => (
-											<p key={message} className="error">
-												{message}
-											</p>
-										))}
-									</div>
-								);
-							})}
 							<div className="actions">
-								<button type="submit">Enviar</button>
+								<button type="submit">
+									{locale === 'en' ? 'Submit' : 'Enviar'}
+								</button>
 								<button
 									type="button"
 									className="secondary"
 									onClick={() => {
-										setAnswers({});
-										setSubmitted(false);
+										controller.reset({});
+										setSent(false);
 									}}
 								>
-									Limpar
+									{locale === 'en' ? 'Clear' : 'Limpar'}
 								</button>
 							</div>
-							{submitted && result?.ok && (
+							{sent && result.ok && (
 								<p className="success">
 									Tudo certo! Veja o resultado ao lado.
 								</p>
 							)}
-						</form>
+						</FormRenderer>
 					)}
 				</section>
 
@@ -287,11 +210,11 @@ export function App() {
 					<h2>Resultado</h2>
 					<h3 className="sub">
 						form.validate(respostas){' '}
-						<span className={`badge ${result?.ok ? 'ok' : 'bad'}`}>
-							{result?.ok ? 'válido' : 'inválido'}
+						<span className={`badge ${result.ok ? 'ok' : 'bad'}`}>
+							{result.ok ? 'válido' : 'inválido'}
 						</span>
 					</h3>
-					<pre className="code">{pretty(result ?? null)}</pre>
+					<pre className="code">{pretty(result)}</pre>
 					<h3 className="sub">
 						Exportar{' '}
 						<select
@@ -310,7 +233,7 @@ export function App() {
 						</select>
 					</h3>
 					<pre className="code">
-						{form && result?.ok
+						{form && result.ok
 							? EXPORTERS[exporter].run(form, result.data, locale)
 							: 'Preencha o form sem erros pra ver a exportação.'}
 					</pre>

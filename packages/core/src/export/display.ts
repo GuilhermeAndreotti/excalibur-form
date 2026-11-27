@@ -23,10 +23,10 @@ export const DISPLAY_LABELS: Readonly<Record<string, DisplayLabels>> =
 /** Opções comuns a todos os exporters que geram texto legível. */
 export interface DisplayOptions {
 	/** Idioma dos textos do schema (`LocalizedText`). */
-	readonly locale?: string;
-	readonly fallbackLocale?: string;
+	readonly locale?: string | undefined;
+	readonly fallbackLocale?: string | undefined;
 	/** Sobrescreve os textos de `DISPLAY_LABELS`. */
-	readonly labels?: Partial<DisplayLabels>;
+	readonly labels?: Partial<DisplayLabels> | undefined;
 }
 
 /** O que `toDisplay` recebe além do valor e do campo. */
@@ -35,7 +35,7 @@ export interface DisplayContext {
 	readonly fallbackLocale: string | undefined;
 	readonly labels: DisplayLabels;
 	/** Resolve um `LocalizedText` no idioma do contexto. */
-	text(text: LocalizedText): string;
+	readonly text: (text: LocalizedText) => string;
 }
 
 function baseLabels(locale: string | undefined): DisplayLabels | undefined {

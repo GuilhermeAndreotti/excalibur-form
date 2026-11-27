@@ -105,7 +105,8 @@ Cada tipo de campo ganha um `toDisplay(value, field, context)` pra isso (`contex
 ## 5. React (`/react`)
 
 - `useExcaliburForm(schema)`: estado, visibilidade, erros e submit (headless).
-- `<FormRenderer schema components={{ boolean: MeuSwitch }} />`: componentes padrão sem estilo e cada um pode ser trocado.
+- `<FormRenderer form components={{ boolean: MeuSwitch }} />`: componentes padrão sem estilo e cada um pode ser trocado.
+- Entregue na fase 3: o hook recebe um `Form` (não o JSON cru) e devolve um `controller` que também pode ir pro `<FormRenderer controller>`. Componentes sem CSS, com classes `ef-*` e acessibilidade (`fieldset`/`legend`, `aria-describedby`, foco no primeiro erro). Mensagens de erro padrão em pt/en/es.
 
 ## 6. Builder (`/builder`)
 
@@ -127,7 +128,7 @@ Cada tipo de campo ganha um `toDisplay(value, field, context)` pra isso (`contex
 | **1** | Core: schema + parse, registry, 8 tipos, validação, condições, inferência de tipos, testes | ✅     |
 | **—** | Demo (`apps/demo`)                                                                         | ✅     |
 | **2** | Exporters (json, qa-list, formData, csv, markdown)                                         | ✅     |
-| **3** | `@excalibur-form/react` (a demo passa a usar ele)                                          |        |
+| **3** | `@excalibur-form/react` (a demo passa a usar ele)                                          | ✅     |
 | **4** | Builder                                                                                    |        |
 | **5** | Versionamento, docs, publicar **v0.1**                                                     |        |
 | **6** | Primeiro uso real: fichas customizáveis no Excalibur Notes                                 |        |
@@ -135,5 +136,5 @@ Cada tipo de campo ganha um `toDisplay(value, field, context)` pra isso (`contex
 ## 9. Decisões em aberto
 
 1. Scope no npm (ver quando for publicar).
-2. Estilo dos componentes padrão do `/react`: sem estilo (recomendado) ou Tailwind.
+2. ~~Estilo dos componentes padrão do `/react`~~: decidido, sem estilo (classes `ef-*`).
 3. Builder no v0.1 ou v0.2.
