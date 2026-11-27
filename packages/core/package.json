@@ -1,7 +1,7 @@
 {
 	"name": "@excalibur-form/core",
 	"version": "0.0.0",
-	"description": "Núcleo do ExcaliburForm: schema de formulário em JSON, tipos de campo, condições e validação. Sem dependências, roda em Node e no browser.",
+	"description": "ExcaliburForm core: JSON form schema, field types, conditions, validation and exporters. Zero dependencies, runs in Node and the browser.",
 	"license": "MIT",
 	"files": [
 		"dist",

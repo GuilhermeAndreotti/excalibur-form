@@ -2,7 +2,7 @@
 	"name": "@excalibur-form/demo",
 	"version": "0.0.0",
 	"private": true,
-	"description": "Demo do ExcaliburForm: edite o schema em JSON e veja o form (renderizado com @excalibur-form/react), a visibilidade condicional, a validação e as exportações ao vivo.",
+	"description": "ExcaliburForm demo: edit the JSON schema and watch the form (rendered with @excalibur-form/react), conditional visibility, validation and exports update live, in English or Brazilian Portuguese.",
 	"license": "MIT",
 	"type": "module",
 	"scripts": {

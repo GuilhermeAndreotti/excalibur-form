@@ -3,4 +3,4 @@
 '@excalibur-form/core': patch
 ---
 
-Novo pacote `@excalibur-form/react`: `useExcaliburForm` (estado headless, visibilidade, erros, envio) e `<FormRenderer>` com componentes sem estilo e trocáveis por tipo. No core, `DisplayOptions` aceita `undefined` explícito e `DisplayContext.text` vira propriedade.
+New `@excalibur-form/react` package: `useExcaliburForm` (headless state, visibility, errors, submit) and `<FormRenderer>` with unstyled components that can be swapped per type. In the core, `DisplayOptions` accepts explicit `undefined` and `DisplayContext.text` is now a property.

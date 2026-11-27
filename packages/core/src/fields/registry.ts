@@ -21,8 +21,8 @@ export const builtinFieldTypes: readonly FieldTypeDefinition[] = [
 ];
 
 /**
- * Cria um registry com os tipos informados. Pra estender os nativos:
- * `createRegistry([...builtinFieldTypes, meuTipo])`.
+ * Creates a registry with the given types. To extend the built-ins:
+ * `createRegistry([...builtinFieldTypes, myType])`.
  */
 export function createRegistry(
 	definitions: readonly FieldTypeDefinition[],

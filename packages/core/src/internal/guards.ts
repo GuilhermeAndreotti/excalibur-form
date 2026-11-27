@@ -6,7 +6,7 @@ export function hasOwn(obj: object, key: string): boolean {
 	return Object.hasOwn(obj, key);
 }
 
-/** Lê uma propriedade própria; ignora o que vier do prototype (`constructor`, `__proto__`...). */
+/** Reads an own property; ignores anything from the prototype (`constructor`, `__proto__`...). */
 export function ownValue(obj: Record<string, unknown>, key: string): unknown {
 	return hasOwn(obj, key) ? obj[key] : undefined;
 }
@@ -20,7 +20,7 @@ export type StripUndefined<T> = {
 	>;
 };
 
-/** Remove chaves com `undefined` (necessário com `exactOptionalPropertyTypes`). */
+/** Drops keys set to `undefined` (needed with `exactOptionalPropertyTypes`). */
 export function stripUndefined<T extends object>(obj: T): StripUndefined<T> {
 	const out: Record<string, unknown> = {};
 	for (const [key, value] of Object.entries(obj)) {

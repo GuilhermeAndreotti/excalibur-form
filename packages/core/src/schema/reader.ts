@@ -14,8 +14,8 @@ export interface NumberReadOptions {
 }
 
 /**
- * Lê e valida as propriedades de um objeto do schema, registrando problemas
- * com o caminho certo. Tipos de campo customizados recebem um destes em
+ * Reads and validates the properties of a schema object, recording problems
+ * with the right path. Custom field types receive one of these in
  * `parseConfig`.
  */
 export interface ConfigReader {

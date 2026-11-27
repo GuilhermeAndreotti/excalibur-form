@@ -21,7 +21,7 @@ const err = (code: string, params?: Record<string, unknown>) => [
 	params ? { fieldId: 'x', code, params } : { fieldId: 'x', code },
 ];
 
-describe('tipos nativos', () => {
+describe('built-in types', () => {
 	it('text', () => {
 		const field = { type: 'text', minLength: 2, maxLength: 4 };
 		expect(errorsFor(field, 'abc')).toBe('ok');
@@ -36,9 +36,9 @@ describe('tipos nativos', () => {
 		);
 	});
 
-	it('text com format', () => {
+	it('text with format', () => {
 		const email = { type: 'text', format: 'email' };
-		for (const ok of ['a@b.co', 'nome.sobrenome@empresa.com.br'])
+		for (const ok of ['a@b.co', 'first.last@company.co.uk'])
 			expect(errorsFor(email, ok)).toBe('ok');
 		for (const bad of [
 			'a',
@@ -59,7 +59,7 @@ describe('tipos nativos', () => {
 		expect(errorsFor(url, 'javascript:alert(1)')).toEqual(
 			err('invalid_format', { format: 'url' }),
 		);
-		expect(errorsFor(url, 'não é url')).toEqual(
+		expect(errorsFor(url, 'not a url')).toEqual(
 			err('invalid_format', { format: 'url' }),
 		);
 	});
@@ -85,7 +85,7 @@ describe('tipos nativos', () => {
 		expect(errorsFor({ type: 'number' }, 1.5)).toBe('ok');
 	});
 
-	it('boolean: false conta como respondido', () => {
+	it('boolean: false counts as answered', () => {
 		expect(errorsFor({ type: 'boolean', required: true }, false)).toBe(
 			'ok',
 		);

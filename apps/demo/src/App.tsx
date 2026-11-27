@@ -15,8 +15,11 @@ import { FormRenderer, useExcaliburForm } from '@excalibur-form/react';
 import { useMemo, useState } from 'react';
 
 import { EXAMPLES } from './examples.ts';
+import { UI, type DemoLocale } from './ui.ts';
 
 const pretty = (value: unknown) => JSON.stringify(value, null, 2);
+
+type Answers = Record<string, unknown>;
 
 const EXPORTERS = {
 	json: {
@@ -50,11 +53,10 @@ const EXPORTERS = {
 	}
 >;
 
-type Answers = Record<string, unknown>;
-
-// Enquanto não há nenhum schema válido, o hook usa um form vazio.
-const EMPTY_FORM: Form = defineForm({ id: 'vazio', version: 1, fields: [] });
 type ExporterId = keyof typeof EXPORTERS;
+
+// Until there is a valid schema, the hook gets an empty form.
+const EMPTY_FORM: Form = defineForm({ id: 'empty', version: 1, fields: [] });
 
 function parseText(
 	text: string,
@@ -71,12 +73,13 @@ export function App() {
 	const [schemaText, setSchemaText] = useState(() =>
 		pretty(EXAMPLES[0]?.schema),
 	);
-	const [locale, setLocale] = useState('pt');
+	const [locale, setLocale] = useState<DemoLocale>('en');
 	const [exporter, setExporter] = useState<ExporterId>('qa');
 	const [sent, setSent] = useState(false);
+	const ui = UI[locale];
 
 	const parsed = useMemo(() => parseText(schemaText), [schemaText]);
-	// Mantém o último form válido na tela enquanto o JSON está sendo editado.
+	// Keeps the last valid form on screen while the JSON is being edited.
 	const [lastForm, setLastForm] = useState<Form | null>(null);
 	const form = parsed.ok ? parsed.value : lastForm;
 	if (parsed.ok && parsed.value !== lastForm) setLastForm(parsed.value);
@@ -93,19 +96,21 @@ export function App() {
 		setSent(false);
 	};
 
+	const changeLocale = (next: DemoLocale) => {
+		setLocale(next);
+		document.documentElement.lang = next;
+	};
+
 	return (
 		<div className="app">
 			<header>
 				<div>
 					<h1>ExcaliburForm</h1>
-					<p>
-						O form é dado: edite o JSON e o formulário, as condições
-						e a validação mudam junto.
-					</p>
+					<p>{ui.tagline}</p>
 				</div>
 				<div className="toolbar">
 					<label>
-						Exemplo
+						{ui.example}
 						<select
 							value={exampleIndex}
 							onChange={(e) =>
@@ -113,20 +118,25 @@ export function App() {
 							}
 						>
 							{EXAMPLES.map((example, i) => (
-								<option key={example.name} value={i}>
-									{example.name}
+								<option
+									key={resolveText(example.name, 'en')}
+									value={i}
+								>
+									{resolveText(example.name, locale, 'en')}
 								</option>
 							))}
 						</select>
 					</label>
 					<label>
-						Idioma
+						{ui.language}
 						<select
 							value={locale}
-							onChange={(e) => setLocale(e.target.value)}
+							onChange={(e) =>
+								changeLocale(e.target.value as DemoLocale)
+							}
 						>
-							<option value="pt">Português</option>
 							<option value="en">English</option>
+							<option value="pt-BR">Português (Brasil)</option>
 						</select>
 					</label>
 				</div>
@@ -144,10 +154,8 @@ export function App() {
 					{!parsed.ok && (
 						<div className="issues">
 							<strong>
-								Schema inválido
-								{form
-									? ' (mostrando a última versão válida)'
-									: ''}
+								{ui.invalidSchema}
+								{form ? ui.showingLastValid : ''}
 							</strong>
 							<ul>
 								{'json' in parsed ? (
@@ -159,7 +167,7 @@ export function App() {
 										>
 											<code>
 												{formatPath(issue.path) ||
-													'(raiz)'}
+													ui.root}
 											</code>{' '}
 											{issue.message}
 										</li>
@@ -173,19 +181,17 @@ export function App() {
 				<section className="panel">
 					<h2>
 						{form?.schema.title
-							? resolveText(form.schema.title, locale, 'pt')
-							: 'Formulário'}
+							? resolveText(form.schema.title, locale, 'en')
+							: ui.formFallbackTitle}
 					</h2>
 					{form && (
 						<FormRenderer
 							controller={controller}
 							locale={locale}
-							fallbackLocale="pt"
+							fallbackLocale="en"
 						>
 							<div className="actions">
-								<button type="submit">
-									{locale === 'en' ? 'Submit' : 'Enviar'}
-								</button>
+								<button type="submit">{ui.submit}</button>
 								<button
 									type="button"
 									className="secondary"
@@ -194,29 +200,27 @@ export function App() {
 										setSent(false);
 									}}
 								>
-									{locale === 'en' ? 'Clear' : 'Limpar'}
+									{ui.clear}
 								</button>
 							</div>
 							{sent && result.ok && (
-								<p className="success">
-									Tudo certo! Veja o resultado ao lado.
-								</p>
+								<p className="success">{ui.success}</p>
 							)}
 						</FormRenderer>
 					)}
 				</section>
 
 				<section className="panel">
-					<h2>Resultado</h2>
+					<h2>{ui.result}</h2>
 					<h3 className="sub">
-						form.validate(respostas){' '}
+						form.validate(answers){' '}
 						<span className={`badge ${result.ok ? 'ok' : 'bad'}`}>
-							{result.ok ? 'válido' : 'inválido'}
+							{result.ok ? ui.valid : ui.invalid}
 						</span>
 					</h3>
 					<pre className="code">{pretty(result)}</pre>
 					<h3 className="sub">
-						Exportar{' '}
+						{ui.export}{' '}
 						<select
 							value={exporter}
 							onChange={(e) =>
@@ -235,11 +239,11 @@ export function App() {
 					<pre className="code">
 						{form && result.ok
 							? EXPORTERS[exporter].run(form, result.data, locale)
-							: 'Preencha o form sem erros pra ver a exportação.'}
+							: ui.exportHint}
 					</pre>
-					<h3 className="sub">Respostas cruas (estado do form)</h3>
+					<h3 className="sub">{ui.rawAnswers}</h3>
 					<pre className="code">{pretty(answers)}</pre>
-					<h3 className="sub">Campos visíveis</h3>
+					<h3 className="sub">{ui.visibleFields}</h3>
 					<pre className="code">{pretty([...visible])}</pre>
 				</section>
 			</main>

@@ -15,20 +15,20 @@ function issuesOf(raw: unknown) {
 }
 
 describe('parseSchema', () => {
-	it('aceita um schema válido, limpa props desconhecidas e congela', () => {
+	it('accepts a valid schema, drops unknown props and freezes it', () => {
 		const result = parseSchema({
 			...base,
 			title: { pt: 'Vistoria', en: 'Inspection' },
-			extra: 'fora',
+			extra: 'dropped',
 			fields: [
 				{
-					id: 'nome',
+					id: 'name',
 					type: 'text',
-					label: 'Nome',
+					label: 'Name',
 					required: true,
-					lixo: 1,
+					junk: 1,
 				},
-				{ id: 'intro', type: 'section', label: 'Sobre' },
+				{ id: 'intro', type: 'section', label: 'About' },
 			],
 		});
 		expect(result.ok).toBe(true);
@@ -38,14 +38,14 @@ describe('parseSchema', () => {
 			version: 1,
 			title: { pt: 'Vistoria', en: 'Inspection' },
 			fields: [
-				{ id: 'nome', type: 'text', label: 'Nome', required: true },
-				{ id: 'intro', type: 'section', label: 'Sobre' },
+				{ id: 'name', type: 'text', label: 'Name', required: true },
+				{ id: 'intro', type: 'section', label: 'About' },
 			],
 		});
 		expect(Object.isFrozen(result.value.fields[0])).toBe(true);
 	});
 
-	it('rejeita raiz inválida', () => {
+	it('rejects an invalid root', () => {
 		expect(issuesOf(null)).toEqual([{ path: '', code: 'invalid_type' }]);
 		expect(issuesOf({})).toEqual([
 			{ path: 'id', code: 'required' },
@@ -58,7 +58,7 @@ describe('parseSchema', () => {
 		]);
 	});
 
-	it('valida ids, tipos e labels dos campos', () => {
+	it('validates field ids, types and labels', () => {
 		expect(
 			issuesOf({
 				...base,
@@ -86,7 +86,7 @@ describe('parseSchema', () => {
 		]);
 	});
 
-	it('exige chaves de exportação únicas', () => {
+	it('requires unique export keys', () => {
 		expect(
 			issuesOf({
 				...base,
@@ -98,7 +98,7 @@ describe('parseSchema', () => {
 		).toEqual([{ path: 'fields[1].key', code: 'duplicate_key' }]);
 	});
 
-	it('section não aceita required nem key', () => {
+	it('section accepts neither required nor key', () => {
 		expect(
 			issuesOf({
 				...base,
@@ -118,7 +118,7 @@ describe('parseSchema', () => {
 		]);
 	});
 
-	it('aplica limites', () => {
+	it('enforces limits', () => {
 		const fields = Array.from({ length: 3 }, (_, i) => ({
 			id: `f${i}`,
 			type: 'boolean',
@@ -145,7 +145,7 @@ describe('parseSchema', () => {
 		).toEqual([{ path: 'fields[0].maxLength', code: 'invalid_value' }]);
 	});
 
-	describe('config de cada tipo', () => {
+	describe('per-type config', () => {
 		it('text / longText', () => {
 			expect(
 				issuesOf({
@@ -272,12 +272,12 @@ describe('parseSchema', () => {
 	describe('showIf', () => {
 		const fields = [
 			{ id: 'ok', type: 'boolean', label: 'Ok?' },
-			{ id: 'age', type: 'number', label: 'Idade' },
+			{ id: 'age', type: 'number', label: 'Age' },
 			{
-				id: 'cor',
+				id: 'color',
 				type: 'choice',
-				label: 'Cor',
-				options: [{ id: 'red', label: 'Vermelho' }],
+				label: 'Color',
+				options: [{ id: 'red', label: 'Red' }],
 			},
 			{
 				id: 'tags',
@@ -291,7 +291,7 @@ describe('parseSchema', () => {
 			...base,
 			fields: [
 				...fields,
-				{ id: 'alvo', type: 'text', label: 'Alvo', showIf },
+				{ id: 'target', type: 'text', label: 'Target', showIf },
 			],
 		});
 		const conditionIssues = (showIf: unknown) =>
@@ -300,7 +300,7 @@ describe('parseSchema', () => {
 				path: i.path.replace('fields[5].showIf', '$'),
 			}));
 
-		it('aceita condições válidas', () => {
+		it('accepts valid conditions', () => {
 			const result = parseSchema(
 				withCondition({
 					all: [
@@ -308,7 +308,7 @@ describe('parseSchema', () => {
 						{
 							any: [
 								{ field: 'age', op: 'gte', value: 18 },
-								{ field: 'cor', op: 'in', value: ['red'] },
+								{ field: 'color', op: 'in', value: ['red'] },
 							],
 						},
 						{ not: { field: 'tags', op: 'includes', value: 't1' } },
@@ -324,7 +324,7 @@ describe('parseSchema', () => {
 					{
 						any: [
 							{ field: 'age', op: 'gte', value: 18 },
-							{ field: 'cor', op: 'in', value: ['red'] },
+							{ field: 'color', op: 'in', value: ['red'] },
 						],
 					},
 					{ not: { field: 'tags', op: 'includes', value: 't1' } },
@@ -366,11 +366,15 @@ describe('parseSchema', () => {
 				'invalid_value',
 			],
 			[
-				{ field: 'cor', op: 'eq', value: 'blue' },
+				{ field: 'color', op: 'eq', value: 'blue' },
 				'$.value',
 				'invalid_value',
 			],
-			[{ field: 'cor', op: 'in', value: [] }, '$.value', 'invalid_value'],
+			[
+				{ field: 'color', op: 'in', value: [] },
+				'$.value',
+				'invalid_value',
+			],
 			[
 				{ field: 'tags', op: 'includes', value: 'zz' },
 				'$.value',
@@ -385,7 +389,7 @@ describe('parseSchema', () => {
 			expect(conditionIssues(showIf)).toEqual([{ path, code }]);
 		});
 
-		it('não deixa referenciar o próprio campo ou campos depois', () => {
+		it('refuses references to the field itself or later fields', () => {
 			expect(
 				issuesOf({
 					...base,
@@ -410,7 +414,7 @@ describe('parseSchema', () => {
 			]);
 		});
 
-		it('não repete erro quando o campo referenciado já é inválido', () => {
+		it('does not repeat the error when the referenced field is already invalid', () => {
 			expect(
 				issuesOf({
 					...base,
@@ -427,7 +431,7 @@ describe('parseSchema', () => {
 			).toEqual([{ path: 'fields[0].min', code: 'invalid_type' }]);
 		});
 
-		it('limita profundidade e quantidade de nós', () => {
+		it('limits depth and node count', () => {
 			let deep: unknown = { field: 'ok', op: 'answered' };
 			for (let i = 0; i < 10; i++) deep = { not: deep };
 			expect(conditionIssues(deep)).toEqual([
@@ -446,7 +450,7 @@ describe('parseSchema', () => {
 		});
 	});
 
-	it('FormSchemaError lista os problemas', () => {
+	it('FormSchemaError lists the problems', () => {
 		const result = parseSchema({
 			...base,
 			fields: [{ id: 'a', type: 'x', label: 'A' }],

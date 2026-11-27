@@ -1,7 +1,7 @@
 {
 	"name": "excalibur-form",
 	"private": true,
-	"description": "Formulários dinâmicos como dados: schema em JSON, validação igual no front e no back, exportação em vários formatos.",
+	"description": "Dynamic forms as data: JSON schema, the same validation on front end and back end, export to many formats.",
 	"license": "MIT",
 	"type": "module",
 	"scripts": {

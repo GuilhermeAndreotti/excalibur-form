@@ -11,11 +11,11 @@ export interface QAAnswer {
 	readonly fieldId: string;
 	readonly key: string;
 	readonly type: string;
-	/** Label do campo, resolvido no idioma pedido. */
+	/** Field label, resolved in the requested language. */
 	readonly question: string;
-	/** Resposta legível (labels das opções, "Sim"/"Não"...). */
+	/** Readable answer (option labels, "Yes"/"No"...). */
 	readonly answer: string;
-	/** Valor original, igual ao de `data`. `undefined` se não respondido. */
+	/** Original value, same as in `data`. `undefined` if unanswered. */
 	readonly value: unknown;
 	readonly answered: boolean;
 }
@@ -30,20 +30,20 @@ export interface QASection {
 export type QAItem = QAAnswer | QASection;
 
 export interface QAListOptions extends DisplayOptions {
-	/** Inclui campos visíveis sem resposta. Padrão: `false`. */
+	/** Includes visible fields with no answer. Default: `false`. */
 	readonly includeUnanswered?: boolean;
-	/** Texto da resposta de campos sem resposta. Padrão: `''`. */
+	/** Answer text for unanswered fields. Default: `''`. */
 	readonly emptyAnswer?: string;
 	/**
-	 * Inclui as `section` como itens de título. Seções sem nenhuma resposta
-	 * depois delas são omitidas. Padrão: `false`.
+	 * Includes `section` fields as heading items. Sections with no answers
+	 * after them are skipped. Default: `false`.
 	 */
 	readonly includeSections?: boolean;
 }
 
 /**
- * Lista pergunta/resposta legível, na ordem do schema. Boa pra tela de
- * resumo, email ou PDF.
+ * Readable question/answer list, in schema order. Good for a summary
+ * screen, an email or a PDF.
  */
 export function toQAList(
 	form: Form,

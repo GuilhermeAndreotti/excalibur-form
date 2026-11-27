@@ -6,7 +6,7 @@ type OptionIds<F> = F extends { readonly options: readonly (infer O)[] }
 		: never
 	: never;
 
-/** Tipo da resposta de um campo, a partir da definição dele. */
+/** Answer type of a field, derived from its definition. */
 export type AnswerOf<F> = F extends { readonly type: 'text' | 'longText' }
 	? string
 	: F extends { readonly type: 'number' | 'scale' }
@@ -24,7 +24,7 @@ type AnswerFields<S extends FormSchema> = Exclude<
 	{ readonly type: 'section' }
 >;
 
-/** Obrigatório e sem `showIf` = sempre presente quando a validação passa. */
+/** Required and no `showIf` = always present when validation passes. */
 type AlwaysPresent<F> = F extends { readonly required: true }
 	? F extends { readonly showIf: object }
 		? false
@@ -34,7 +34,7 @@ type AlwaysPresent<F> = F extends { readonly required: true }
 type Simplify<T> = { [K in keyof T]: T[K] } & {};
 
 /**
- * Tipo das respostas válidas de um form, indexadas pelo `id` de cada campo.
+ * Type of a form's valid answers, keyed by each field's `id`.
  *
  * ```ts
  * const form = defineForm({ ... });

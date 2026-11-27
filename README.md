@@ -1,72 +1,75 @@
 <p align="center">
-	<img src="assets/logo.svg" width="180" alt="Ícone do ExcaliburForm: formulário com checkboxes na frente de uma espada de guarda dourada, dentro de um círculo mágico" />
+	<img src="assets/logo.svg" width="180" alt="ExcaliburForm icon: a form with checkboxes in front of a golden-hilted sword, inside a magic circle" />
 </p>
 
 <h1 align="center">ExcaliburForm</h1>
 
-**Formulários dinâmicos como dados.** Você descreve o formulário em JSON (dá pra salvar no banco, editar num painel, versionar), e a lib valida esse schema, decide quais campos aparecem, valida as respostas e devolve os dados tipados. O mesmo código roda no front e no back.
+<p align="center"><strong>English</strong> · <a href="README.pt-BR.md">Português (Brasil)</a></p>
+
+**Dynamic forms as data.** You describe the form in JSON (store it in a database, edit it in an admin panel, version it), and the library validates that schema, decides which fields show up, validates the answers and hands back typed data. The same code runs on the front end and the back end.
 
 ```
 schema (JSON) ──► parseForm / defineForm ──► form
-                                              ├─ visibleFieldIds(respostas)  → o que mostrar agora
-                                              └─ validate(respostas)         → { ok, data } | { ok: false, errors }
+                                              ├─ visibleFieldIds(answers)  → what to show right now
+                                              └─ validate(answers)         → { ok, data } | { ok: false, errors }
 ```
 
-- **Zero dependências**, roda em Node, browser, edge, React Native…
-- **TypeScript primeiro**: o tipo das respostas é inferido do schema.
-- **Seguro pra schema vindo de usuário**: tudo é validado e limitado, sem `eval` e sem regex vinda de fora.
-- **Headless**: o core não renderiza nada, então funciona com qualquer UI. Pra React tem o `@excalibur-form/react` (hook + renderer sem estilo).
+- **Zero dependencies**, runs in Node, the browser, edge runtimes, React Native…
+- **TypeScript first**: the answer types are inferred from the schema.
+- **Safe for user-provided schemas**: everything is validated and capped, with no `eval` and no user-supplied regex.
+- **English and Portuguese built in**: export texts and React error messages ship in English (default) and Brazilian Portuguese (plus Spanish). The form's own texts can have as many languages as you like.
+- **Headless**: the core renders nothing, so it works with any UI. For React there's `@excalibur-form/react` (a hook plus an unstyled renderer).
 
-> **Status:** em desenvolvimento (fase 3 de 6, veja o [roadmap](docs/PLAN.md)). O core funciona e é testado, mas ainda não está publicado no npm e a API pode mudar.
+> **Status:** in development (phase 3 of 6, see the [roadmap](docs/PLAN.md)). The core works and is tested, but it isn't on npm yet and the API may change.
 
 ---
 
-## Sumário
+## Contents
 
-- [Quando usar (e quando não usar)](#quando-usar-e-quando-não-usar)
-- [Rodando a demo](#rodando-a-demo)
-- [Instalação](#instalação)
-- [Guia rápido](#guia-rápido)
-- [O schema](#o-schema)
-- [Tipos de campo](#tipos-de-campo)
-- [Condições (`showIf`)](#condições-showif)
-- [Validando respostas](#validando-respostas)
-- [Erros de schema](#erros-de-schema)
-- [Tipos inferidos](#tipos-inferidos)
-- [Textos em vários idiomas](#textos-em-vários-idiomas)
+- [When to use it (and when not to)](#when-to-use-it-and-when-not-to)
+- [Running the demo](#running-the-demo)
+- [Installation](#installation)
+- [Quick start](#quick-start)
+- [The schema](#the-schema)
+- [Field types](#field-types)
+- [Conditions (`showIf`)](#conditions-showif)
+- [Validating answers](#validating-answers)
+- [Schema errors](#schema-errors)
+- [Inferred types](#inferred-types)
+- [Multilingual texts](#multilingual-texts)
 - [React (`@excalibur-form/react`)](#react-excalibur-formreact)
-- [Usando no backend](#usando-no-backend)
-- [Exportando respostas](#exportando-respostas)
-- [Tipos de campo customizados](#tipos-de-campo-customizados)
-- [Limites e segurança](#limites-e-segurança)
-- [Referência da API](#referência-da-api)
-- [Desenvolvimento](#desenvolvimento)
+- [Using it on the back end](#using-it-on-the-back-end)
+- [Exporting answers](#exporting-answers)
+- [Custom field types](#custom-field-types)
+- [Limits and security](#limits-and-security)
+- [API reference](#api-reference)
+- [Development](#development)
 - [Roadmap](#roadmap)
 
 ---
 
-## Quando usar (e quando não usar)
+## When to use it (and when not to)
 
-**Se o seu formulário é fixo** (contato, login, cadastro), **não use esta lib**. React Hook Form + Zod resolve melhor.
+**If your form is fixed** (contact, login, sign-up), **don't use this library**. React Hook Form + Zod does that better.
 
-**Use quando o formulário é dado, não código:**
+**Use it when the form is data, not code:**
 
-| Situação                                                    | Por que ajuda                                                                                                          |
-| ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Um admin ou cliente **cadastra as perguntas** num painel    | Você não precisa inventar o modelo de "pergunta", o `switch` por tipo, a validação dinâmica e a lógica de "mostrar se" |
-| O mesmo form precisa ser **validado no front e no back**    | O schema é JSON e a validação é a mesma função nos dois lados                                                          |
-| Você tem **dezenas de checklists/questionários**            | Cada um é um JSON, não um componente                                                                                   |
-| Os forms **mudam com o tempo** e respostas antigas importam | IDs estáveis: renomear um label ou reordenar campos não quebra nada                                                    |
+| Situation                                                     | Why it helps                                                                                                 |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| An admin or customer **creates the questions** in a panel     | You don't have to invent the "question" model, the per-type `switch`, dynamic validation and "show if" logic |
+| The same form must be **validated on front end and back end** | The schema is JSON and validation is the same function on both sides                                         |
+| You have **dozens of checklists/questionnaires**              | Each one is a JSON document, not a component                                                                 |
+| Forms **change over time** and old answers matter             | Stable IDs: renaming a label or reordering fields breaks nothing                                             |
 
-Exemplos: checklists de vistoria, anamnese, pesquisas de satisfação, onboarding configurável, fichas de RPG customizáveis, formulários por cliente/tenant.
+Examples: inspection checklists, medical intake forms, satisfaction surveys, configurable onboarding, customizable RPG character sheets, per-customer/tenant forms.
 
 ---
 
-## Rodando a demo
+## Running the demo
 
-O repositório tem uma demo onde você edita o schema em JSON e vê o formulário (renderizado pelo `@excalibur-form/react`), as condições, a validação e as exportações mudando ao vivo.
+The repository has a demo where you edit the JSON schema and watch the form (rendered by `@excalibur-form/react`), its conditions, validation and exports update live.
 
-Pré-requisitos: **Node 24+** e **pnpm** (`corepack enable` já instala a versão certa).
+Requirements: **Node 24+** and **pnpm** (`corepack enable` installs the right version).
 
 ```bash
 git clone https://github.com/GuilhermeAndreotti/excalibur-form.git
@@ -75,62 +78,62 @@ pnpm install
 pnpm dev
 ```
 
-Abra http://localhost:5173. Tem três exemplos prontos (vistoria de veículo, ficha de RPG e uma pesquisa em pt/en).
+Open http://localhost:5173. There are three ready-made examples (vehicle inspection, RPG character sheet and a satisfaction survey), all with texts in English and Portuguese: switch the language in the top bar.
 
 ---
 
-## Instalação
+## Installation
 
-Os pacotes ainda não estão no npm. Por enquanto, pra usar em outro projeto:
+The packages aren't on npm yet. For now, to use them in another project:
 
 ```bash
 git clone https://github.com/GuilhermeAndreotti/excalibur-form.git
 cd excalibur-form && pnpm install && pnpm build
 ```
 
-E no seu projeto, aponte pra pasta do pacote:
+Then point your project at the package folder:
 
 ```bash
-pnpm add /caminho/para/excalibur-form/packages/core
-pnpm add /caminho/para/excalibur-form/packages/react   # se for usar React
+pnpm add /path/to/excalibur-form/packages/core
+pnpm add /path/to/excalibur-form/packages/react   # if you use React
 ```
 
-Quando for publicado, vai ser só:
+Once published, it will just be:
 
 ```bash
 pnpm add @excalibur-form/core
-pnpm add @excalibur-form/react   # opcional
+pnpm add @excalibur-form/react   # optional
 ```
 
-Os pacotes são **ESM** e exige Node 20.19+ (ou qualquer bundler moderno).
+The packages are **ESM only** and need Node 20.19+ (or any modern bundler).
 
 ---
 
-## Guia rápido
+## Quick start
 
-### 1. Defina um formulário
+### 1. Define a form
 
-Em código (com tipos inferidos):
+In code (with inferred types):
 
 ```ts
 import { defineForm } from '@excalibur-form/core';
 
-const vistoria = defineForm({
-	id: 'vistoria',
+const inspection = defineForm({
+	id: 'inspection',
 	version: 1,
-	title: 'Vistoria de veículo',
+	title: 'Vehicle inspection',
 	fields: [
 		{
-			id: 'placa',
+			id: 'plate',
 			type: 'text',
-			label: 'Placa',
+			label: 'License plate',
 			required: true,
 			maxLength: 8,
 		},
 		{
-			id: 'combustivel',
+			id: 'fuel',
 			type: 'choice',
-			label: 'Combustível',
+			label: 'Fuel',
 			required: true,
 			options: [
 				{ id: 'flex', label: 'Flex' },
@@ -138,296 +141,296 @@ const vistoria = defineForm({
 			],
 		},
 		{
-			id: 'tem_multa',
+			id: 'has_fines',
 			type: 'boolean',
-			label: 'Possui multas?',
+			label: 'Any outstanding fines?',
 			required: true,
 		},
 		{
-			id: 'valor_multas',
+			id: 'fines_total',
 			type: 'number',
-			label: 'Valor das multas (R$)',
+			label: 'Total fines amount',
 			required: true,
 			min: 0,
-			showIf: { field: 'tem_multa', op: 'eq', value: true },
+			showIf: { field: 'has_fines', op: 'eq', value: true },
 		},
 	],
 });
 ```
 
-Ou a partir de um JSON vindo do banco/API (o caso mais comum):
+Or from JSON coming from a database/API (the most common case):
 
 ```ts
 import { parseForm } from '@excalibur-form/core';
 
-const parsed = parseForm(JSON.parse(schemaSalvoNoBanco));
+const parsed = parseForm(JSON.parse(schemaFromDatabase));
 
 if (!parsed.ok) {
-	// schema inválido: veja "Erros de schema"
+	// invalid schema: see "Schema errors"
 	console.error(parsed.issues);
 } else {
 	const form = parsed.value;
 }
 ```
 
-> `defineForm` **lança** `FormSchemaError` se o schema for inválido (bom pra código, onde é bug). `parseForm` **devolve** os problemas (bom pra dado externo).
+> `defineForm` **throws** `FormSchemaError` if the schema is invalid (good for code, where it's a bug). `parseForm` **returns** the problems (good for external data).
 
-### 2. Descubra o que mostrar
+### 2. Find out what to show
 
 ```ts
-vistoria.visibleFieldIds({ tem_multa: false });
-// Set { 'placa', 'combustivel', 'tem_multa' }
+inspection.visibleFieldIds({ has_fines: false });
+// Set { 'plate', 'fuel', 'has_fines' }
 
-vistoria.visibleFieldIds({ tem_multa: true });
-// Set { 'placa', 'combustivel', 'tem_multa', 'valor_multas' }
+inspection.visibleFieldIds({ has_fines: true });
+// Set { 'plate', 'fuel', 'has_fines', 'fines_total' }
 ```
 
-### 3. Valide as respostas
+### 3. Validate the answers
 
 ```ts
-const result = vistoria.validate({
-	placa: 'ABC1D23',
-	combustivel: 'flex',
-	tem_multa: false,
-	valor_multas: 500, // ignorado: o campo está escondido
-	qualquerCoisa: 1, // ignorado: não existe no schema
+const result = inspection.validate({
+	plate: 'ABC1D23',
+	fuel: 'flex',
+	has_fines: false,
+	fines_total: 500, // ignored: the field is hidden
+	whatever: 1, // ignored: not in the schema
 });
 
 if (result.ok) {
 	result.data;
-	// { placa: 'ABC1D23', combustivel: 'flex', tem_multa: false }
+	// { plate: 'ABC1D23', fuel: 'flex', has_fines: false }
 } else {
 	result.errors;
-	// [{ fieldId: 'placa', code: 'required' }, ...]
+	// [{ fieldId: 'plate', code: 'required' }, ...]
 }
 ```
 
-Pronto: esse é o ciclo todo. O resto deste README detalha cada parte.
+That's the whole cycle. The rest of this README covers each part in detail.
 
 ---
 
-## O schema
+## The schema
 
 ```ts
 interface FormSchema {
-	id: string; // identificador do formulário
-	version: number; // inteiro >= 1; incremente quando o form mudar
+	id: string; // form identifier
+	version: number; // integer >= 1; bump it when the form changes
 	title?: LocalizedText;
 	description?: LocalizedText;
 	fields: Field[];
 }
 ```
 
-Todo campo tem estas propriedades comuns:
+Every field has these common properties:
 
-| Propriedade   | Tipo            | Obrigatória | Descrição                                                                                                             |
-| ------------- | --------------- | ----------- | --------------------------------------------------------------------------------------------------------------------- |
-| `id`          | `string`        | sim         | ID **estável**. As respostas e as condições usam ele. Começa com letra; letras, números, `_` e `-`, até 64 caracteres |
-| `type`        | `string`        | sim         | Tipo do campo (veja abaixo)                                                                                           |
-| `label`       | `LocalizedText` | sim         | Pergunta exibida                                                                                                      |
-| `description` | `LocalizedText` | não         | Texto de ajuda                                                                                                        |
-| `required`    | `boolean`       | não         | Se precisa ser respondido (quando visível)                                                                            |
-| `showIf`      | `Condition`     | não         | O campo só aparece (e só é validado) quando a condição é verdadeira                                                   |
-| `key`         | `string`        | não         | Nome usado nas exportações (padrão: o `id`). Útil pra manter o `id` estável e mudar o nome externo                    |
+| Property      | Type            | Required | Description                                                                                                      |
+| ------------- | --------------- | -------- | ---------------------------------------------------------------------------------------------------------------- |
+| `id`          | `string`        | yes      | **Stable** ID. Answers and conditions use it. Starts with a letter; letters, digits, `_` and `-`, up to 64 chars |
+| `type`        | `string`        | yes      | Field type (see below)                                                                                           |
+| `label`       | `LocalizedText` | yes      | The question shown                                                                                               |
+| `description` | `LocalizedText` | no       | Help text                                                                                                        |
+| `required`    | `boolean`       | no       | Whether it must be answered (when visible)                                                                       |
+| `showIf`      | `Condition`     | no       | The field only shows up (and is only validated) when the condition is true                                       |
+| `key`         | `string`        | no       | Name used in exports (default: the `id`). Handy to keep the `id` stable while changing the external name         |
 
-**Por que `id` estável?** Num painel de perguntas, o usuário vai renomear labels e reordenar campos. Como as respostas são guardadas pelo `id` (e as opções de escolha também pelo `id` delas), nada quebra.
+**Why stable IDs?** In a question builder, users will rename labels and reorder fields. Since answers are stored by `id` (and choice options by their own `id` too), nothing breaks.
 
-Regras que o `parseForm` garante:
+Rules `parseForm` enforces:
 
-- `id`s de campos únicos, `id`s de opções únicos dentro do campo, e `key`s de exportação únicas.
-- Propriedades desconhecidas são **descartadas**, e o schema devolvido vem **congelado** (`Object.freeze`).
+- Unique field `id`s, unique option `id`s within a field, and unique export `key`s.
+- Unknown properties are **dropped**, and the returned schema is **frozen** (`Object.freeze`).
 
 ---
 
-## Tipos de campo
+## Field types
 
-### `text`: texto curto
+### `text`: short text
 
 ```json
 {
 	"id": "email",
 	"type": "text",
-	"label": "E-mail",
+	"label": "Email",
 	"format": "email",
 	"required": true
 }
 ```
 
-| Config        | Tipo               | Descrição                                     |
-| ------------- | ------------------ | --------------------------------------------- |
-| `minLength`   | `number`           | Mínimo de caracteres                          |
-| `maxLength`   | `number`           | Máximo de caracteres (teto padrão: 10.000)    |
-| `format`      | `'email' \| 'url'` | Valida o formato (`url` aceita só http/https) |
-| `placeholder` | `LocalizedText`    |                                               |
+| Config        | Type               | Description                                         |
+| ------------- | ------------------ | --------------------------------------------------- |
+| `minLength`   | `number`           | Minimum characters                                  |
+| `maxLength`   | `number`           | Maximum characters (default cap: 10,000)            |
+| `format`      | `'email' \| 'url'` | Validates the format (`url` only allows http/https) |
+| `placeholder` | `LocalizedText`    |                                                     |
 
-Resposta: `string`. Texto só com espaços conta como **não respondido**.
+Answer: `string`. Whitespace-only text counts as **unanswered**.
 
-### `longText`: texto longo
+### `longText`: long text
 
-Igual ao `text`, sem `format`. Teto padrão de 100.000 caracteres. Resposta: `string`.
+Same as `text`, without `format`. Default cap of 100,000 characters. Answer: `string`.
 
 ### `number`
 
 ```json
 {
-	"id": "idade",
+	"id": "age",
 	"type": "number",
-	"label": "Idade",
+	"label": "Age",
 	"integer": true,
 	"min": 0,
 	"max": 130
 }
 ```
 
-| Config        | Tipo            | Descrição            |
-| ------------- | --------------- | -------------------- |
-| `min` / `max` | `number`        | Limites (inclusivos) |
-| `integer`     | `boolean`       | Só aceita inteiros   |
-| `placeholder` | `LocalizedText` |                      |
+| Config        | Type            | Description           |
+| ------------- | --------------- | --------------------- |
+| `min` / `max` | `number`        | Bounds (inclusive)    |
+| `integer`     | `boolean`       | Only accepts integers |
+| `placeholder` | `LocalizedText` |                       |
 
-Resposta: `number` finito. **Strings como `"5"` são rejeitadas**: converta no input (veja o exemplo em React).
+Answer: a finite `number`. **Strings like `"5"` are rejected**: convert in the input (the React package does this for you).
 
 ### `boolean`
 
 ```json
 {
-	"id": "aceita",
+	"id": "accepts",
 	"type": "boolean",
-	"label": "Aceita os termos?",
+	"label": "Do you accept the terms?",
 	"required": true
 }
 ```
 
-Resposta: `true` ou `false`. **`false` conta como respondido** (só `null`/`undefined` contam como vazio).
+Answer: `true` or `false`. **`false` counts as answered** (only `null`/`undefined` count as empty).
 
-### `choice`: escolha única
+### `choice`: single choice
 
 ```json
 {
-	"id": "cor",
+	"id": "color",
 	"type": "choice",
-	"label": "Cor",
+	"label": "Color",
 	"options": [
-		{ "id": "azul", "label": "Azul" },
-		{ "id": "verde", "label": "Verde" }
+		{ "id": "blue", "label": "Blue" },
+		{ "id": "green", "label": "Green" }
 	]
 }
 ```
 
-| Config    | Tipo                                     | Descrição                      |
-| --------- | ---------------------------------------- | ------------------------------ |
-| `options` | `{ id: string; label: LocalizedText }[]` | Obrigatório, de 1 a 200 opções |
+| Config    | Type                                     | Description                |
+| --------- | ---------------------------------------- | -------------------------- |
+| `options` | `{ id: string; label: LocalizedText }[]` | Required, 1 to 200 options |
 
-Resposta: o **`id` da opção** (`'azul'`), nunca o label.
+Answer: the **option `id`** (`'blue'`), never the label.
 
-### `multiChoice`: múltipla escolha
+### `multiChoice`: multiple choice
 
 ```json
 {
-	"id": "opcionais",
+	"id": "extras",
 	"type": "multiChoice",
-	"label": "Opcionais",
+	"label": "Extras",
 	"minSelected": 1,
 	"maxSelected": 2,
 	"options": [
-		{ "id": "ar", "label": "Ar-condicionado" },
-		{ "id": "teto", "label": "Teto solar" },
-		{ "id": "couro", "label": "Couro" }
+		{ "id": "ac", "label": "Air conditioning" },
+		{ "id": "sunroof", "label": "Sunroof" },
+		{ "id": "leather", "label": "Leather seats" }
 	]
 }
 ```
 
-| Config        | Tipo              | Descrição                 |
-| ------------- | ----------------- | ------------------------- |
-| `options`     | igual ao `choice` | Obrigatório               |
-| `minSelected` | `number`          | Mínimo de opções marcadas |
-| `maxSelected` | `number`          | Máximo de opções marcadas |
+| Config        | Type             | Description              |
+| ------------- | ---------------- | ------------------------ |
+| `options`     | same as `choice` | Required                 |
+| `minSelected` | `number`         | Minimum options selected |
+| `maxSelected` | `number`         | Maximum options selected |
 
-Resposta: `string[]` de `id`s, sem repetição. Array vazio conta como **não respondido**.
+Answer: `string[]` of `id`s, no duplicates. An empty array counts as **unanswered**.
 
-### `scale`: escala numérica
+### `scale`: numeric scale
 
 ```json
 {
 	"id": "nps",
 	"type": "scale",
-	"label": "Nota",
+	"label": "Score",
 	"min": 0,
 	"max": 10,
-	"minLabel": "Nada provável",
-	"maxLabel": "Muito provável"
+	"minLabel": "Not likely",
+	"maxLabel": "Very likely"
 }
 ```
 
-| Config                  | Tipo            | Descrição                                  |
-| ----------------------- | --------------- | ------------------------------------------ |
-| `min` / `max`           | `number`        | Inteiros, padrão `1` a `5`, até 100 passos |
-| `minLabel` / `maxLabel` | `LocalizedText` | Rótulos das pontas                         |
+| Config                  | Type            | Description                                   |
+| ----------------------- | --------------- | --------------------------------------------- |
+| `min` / `max`           | `number`        | Integers, default `1` to `5`, up to 100 steps |
+| `minLabel` / `maxLabel` | `LocalizedText` | Labels for the ends                           |
 
-Resposta: inteiro entre `min` e `max`. Use `scaleBounds(field)` pra ler os limites já com os padrões aplicados.
+Answer: an integer between `min` and `max`. Use `scaleBounds(field)` to read the bounds with defaults applied.
 
-### `section`: bloco informativo
+### `section`: informational block
 
 ```json
 {
-	"id": "dados_pessoais",
+	"id": "personal_data",
 	"type": "section",
-	"label": "Dados pessoais",
-	"description": "Preencha com atenção."
+	"label": "Personal data",
+	"description": "Please fill in carefully."
 }
 ```
 
-Título/texto entre perguntas. **Não tem resposta**: não aceita `required` nem `key`, e não pode ser referenciado em condições. Pode ter `showIf`.
+A title/text between questions. **It has no answer**: it accepts neither `required` nor `key`, and can't be referenced in conditions. It can have `showIf`.
 
 ---
 
-## Condições (`showIf`)
+## Conditions (`showIf`)
 
-Condições são JSON puro, avaliado sem `eval`. Um campo com `showIf` só aparece quando a condição é verdadeira.
+Conditions are plain JSON, evaluated without `eval`. A field with `showIf` only shows up when the condition is true.
 
-### Comparações
+### Comparisons
 
 ```json
-{ "field": "<id de um campo anterior>", "op": "<operador>", "value": <valor> }
+{ "field": "<id of an earlier field>", "op": "<operator>", "value": <value> }
 ```
 
-| Operador                    | `value`            | Significado                                     | Tipos de campo                                  |
-| --------------------------- | ------------------ | ----------------------------------------------- | ----------------------------------------------- |
-| `eq` / `neq`                | string/number/bool | igual / diferente                               | todos (menos `multiChoice`)                     |
-| `gt` / `gte` / `lt` / `lte` | `number`           | maior / maior ou igual / menor / menor ou igual | `number`, `scale`                               |
-| `in` / `notIn`              | array              | está / não está na lista                        | `text`, `longText`, `number`, `scale`, `choice` |
-| `includes`                  | `string` (id)      | a resposta (array) contém a opção               | `multiChoice`                                   |
-| `answered` / `notAnswered`  | (nenhum)           | foi / não foi respondido                        | todos                                           |
+| Operator                    | `value`            | Meaning                                           | Field types                                     |
+| --------------------------- | ------------------ | ------------------------------------------------- | ----------------------------------------------- |
+| `eq` / `neq`                | string/number/bool | equal / not equal                                 | all (except `multiChoice`)                      |
+| `gt` / `gte` / `lt` / `lte` | `number`           | greater / greater or equal / less / less or equal | `number`, `scale`                               |
+| `in` / `notIn`              | array              | is / isn't in the list                            | `text`, `longText`, `number`, `scale`, `choice` |
+| `includes`                  | `string` (id)      | the answer (array) contains the option            | `multiChoice`                                   |
+| `answered` / `notAnswered`  | (none)             | was / wasn't answered                             | all                                             |
 
-### Combinando
+### Combining
 
 ```json
 {
 	"all": [
-		{ "field": "classe", "op": "eq", "value": "ladino" },
+		{ "field": "class", "op": "eq", "value": "rogue" },
 		{
 			"any": [
-				{ "field": "nivel", "op": "gte", "value": 5 },
+				{ "field": "level", "op": "gte", "value": 5 },
 				{
-					"field": "pericias",
+					"field": "skills",
 					"op": "includes",
-					"value": "furtividade"
+					"value": "stealth"
 				}
 			]
 		},
-		{ "not": { "field": "banido", "op": "eq", "value": true } }
+		{ "not": { "field": "banned", "op": "eq", "value": true } }
 	]
 }
 ```
 
-- `all`: todas verdadeiras (E)
-- `any`: pelo menos uma verdadeira (OU)
-- `not`: inverte
+- `all`: every one is true (AND)
+- `any`: at least one is true (OR)
+- `not`: negates
 
-### Regras importantes
+### Important rules
 
-1. **Só dá pra referenciar campos que vêm antes** no schema. Isso impede ciclos (A depende de B que depende de A). Referenciar o próprio campo ou um posterior dá erro `forward_reference`.
-2. **Comparações só batem com campos respondidos e visíveis.** Se o campo não foi respondido, `eq`, `neq`, `in`, `notIn` etc. dão `false`. Pra incluir o caso vazio, use `notAnswered`:
+1. **Only fields that come earlier** in the schema can be referenced. This prevents cycles (A depends on B which depends on A). Referencing the field itself or a later one gives a `forward_reference` error.
+2. **Comparisons only match answered, visible fields.** If the field wasn't answered, `eq`, `neq`, `in`, `notIn` etc. are `false`. To include the empty case, use `notAnswered`:
     ```json
     {
     	"any": [
@@ -436,22 +439,22 @@ Condições são JSON puro, avaliado sem `eval`. Um campo com `showIf` só apare
     	]
     }
     ```
-3. **A visibilidade cascateia.** Se B depende de A e C depende de B, esconder B também esconde C, mesmo que B tenha um valor guardado.
-4. O `parseForm` confere se o operador faz sentido pro tipo do campo e se o valor é válido (ex.: em `choice`, o `value` precisa ser o `id` de uma opção que existe).
+3. **Visibility cascades.** If B depends on A and C depends on B, hiding B also hides C, even if B has a stored value.
+4. `parseForm` checks that the operator makes sense for the field type and that the value is valid (e.g. for `choice`, `value` must be the `id` of an existing option).
 
 ---
 
-## Validando respostas
+## Validating answers
 
 ```ts
-const result = form.validate(respostas);
+const result = form.validate(answers);
 ```
 
-- `respostas` é um objeto `{ [idDoCampo]: valor }`.
-- **Campos escondidos são ignorados**: não são validados e não aparecem em `data`.
-- **Chaves desconhecidas são ignoradas.**
-- Campos vazios e opcionais simplesmente não aparecem em `data`.
-- Todos os erros são retornados de uma vez (não para no primeiro).
+- `answers` is an object `{ [fieldId]: value }`.
+- **Hidden fields are ignored**: they aren't validated and don't appear in `data`.
+- **Unknown keys are ignored.**
+- Empty optional fields simply don't appear in `data`.
+- Every error is returned at once (it doesn't stop at the first).
 
 ```ts
 type ValidationResult<T> =
@@ -459,63 +462,63 @@ type ValidationResult<T> =
 	| { ok: false; errors: ValidationError[] };
 
 interface ValidationError {
-	fieldId: string | null; // null = o objeto de respostas em si é inválido
+	fieldId: string | null; // null = the answers object itself is invalid
 	code: ValidationCode;
 	params?: Record<string, string | number>;
 }
 ```
 
-### Códigos de erro
+### Error codes
 
-A lib devolve **códigos**, não mensagens: cada app traduz como quiser.
+The library returns **codes**, not messages: each app translates them its own way (the React package ships default messages in English, Portuguese and Spanish).
 
-| Código             | `params`     | Quando                                  |
-| ------------------ | ------------ | --------------------------------------- |
-| `required`         | (nenhum)     | Campo obrigatório visível e vazio       |
-| `invalid_type`     | (nenhum)     | Tipo errado (ex.: string num `number`)  |
-| `too_short`        | `{ min }`    | Texto menor que `minLength`             |
-| `too_long`         | `{ max }`    | Texto maior que `maxLength` (ou o teto) |
-| `too_small`        | `{ min }`    | Número abaixo de `min`                  |
-| `too_big`          | `{ max }`    | Número acima de `max`                   |
-| `not_integer`      | (nenhum)     | Decimal onde só inteiro é aceito        |
-| `invalid_format`   | `{ format }` | `email` ou `url` inválido               |
-| `invalid_option`   | `{ option }` | `id` de opção que não existe            |
-| `duplicate_option` | `{ option }` | Opção repetida no `multiChoice`         |
-| `too_few`          | `{ min }`    | Menos opções que `minSelected`          |
-| `too_many`         | `{ max }`    | Mais opções que `maxSelected`           |
+| Code               | `params`     | When                                      |
+| ------------------ | ------------ | ----------------------------------------- |
+| `required`         | (none)       | Required visible field is empty           |
+| `invalid_type`     | (none)       | Wrong type (e.g. a string in a `number`)  |
+| `too_short`        | `{ min }`    | Text shorter than `minLength`             |
+| `too_long`         | `{ max }`    | Text longer than `maxLength` (or the cap) |
+| `too_small`        | `{ min }`    | Number below `min`                        |
+| `too_big`          | `{ max }`    | Number above `max`                        |
+| `not_integer`      | (none)       | Decimal where only integers are allowed   |
+| `invalid_format`   | `{ format }` | Invalid `email` or `url`                  |
+| `invalid_option`   | `{ option }` | Option `id` that doesn't exist            |
+| `duplicate_option` | `{ option }` | Repeated option in a `multiChoice`        |
+| `too_few`          | `{ min }`    | Fewer options than `minSelected`          |
+| `too_many`         | `{ max }`    | More options than `maxSelected`           |
 
-Exemplo de tradução:
+Translation example:
 
 ```ts
 import type { AnswerIssue } from '@excalibur-form/core';
 
-function mensagem(issue: AnswerIssue): string {
+function message(issue: AnswerIssue): string {
 	const p = issue.params ?? {};
 	switch (issue.code) {
 		case 'required':
-			return 'Campo obrigatório';
+			return 'This field is required';
 		case 'too_long':
-			return `Máximo de ${p.max} caracteres`;
+			return `At most ${p.max} characters`;
 		case 'invalid_format':
-			return p.format === 'email' ? 'E-mail inválido' : 'URL inválida';
+			return p.format === 'email' ? 'Invalid email' : 'Invalid URL';
 		// ...
 		default:
-			return 'Valor inválido';
+			return 'Invalid value';
 	}
 }
 ```
 
 ---
 
-## Erros de schema
+## Schema errors
 
-Quando o schema em si é inválido, `parseForm` devolve `{ ok: false, issues }`:
+When the schema itself is invalid, `parseForm` returns `{ ok: false, issues }`:
 
 ```ts
 interface SchemaIssue {
-	path: (string | number)[]; // onde está o problema
+	path: (string | number)[]; // where the problem is
 	code: SchemaIssueCode;
-	message: string; // em inglês, pra devs
+	message: string; // for developers
 }
 ```
 
@@ -527,9 +530,9 @@ const parsed = parseForm({
 	version: 1,
 	fields: [
 		{
-			id: 'cor',
+			id: 'color',
 			type: 'choice',
-			label: 'Cor',
+			label: 'Color',
 			options: [
 				{ id: 'a', label: 'A' },
 				{ id: 'a', label: 'B' },
@@ -546,15 +549,15 @@ if (!parsed.ok) {
 }
 ```
 
-Códigos: `invalid_type`, `required`, `invalid_value`, `invalid_id`, `too_long`, `too_many`, `too_few`, `duplicate_id`, `duplicate_key`, `unknown_field_type`, `invalid_condition`, `unknown_reference`, `forward_reference`, `unsupported_operator`.
+Codes: `invalid_type`, `required`, `invalid_value`, `invalid_id`, `too_long`, `too_many`, `too_few`, `duplicate_id`, `duplicate_key`, `unknown_field_type`, `invalid_condition`, `unknown_reference`, `forward_reference`, `unsupported_operator`.
 
-Num builder/painel, use isso pra mostrar o erro no lugar certo antes de salvar o schema.
+In a builder/admin panel, use these to show the error in the right place before saving the schema.
 
 ---
 
-## Tipos inferidos
+## Inferred types
 
-Com `defineForm`, o TypeScript sabe o formato exato das respostas válidas:
+With `defineForm`, TypeScript knows the exact shape of valid answers:
 
 ```ts
 import { defineForm, type InferAnswers } from '@excalibur-form/core';
@@ -563,14 +566,14 @@ const form = defineForm({
 	id: 'f',
 	version: 1,
 	fields: [
-		{ id: 'nome', type: 'text', label: 'Nome', required: true },
+		{ id: 'name', type: 'text', label: 'Name', required: true },
 		{
-			id: 'cor',
+			id: 'color',
 			type: 'choice',
-			label: 'Cor',
+			label: 'Color',
 			options: [
-				{ id: 'azul', label: 'Azul' },
-				{ id: 'verde', label: 'Verde' },
+				{ id: 'blue', label: 'Blue' },
+				{ id: 'green', label: 'Green' },
 			],
 		},
 		{
@@ -584,74 +587,77 @@ const form = defineForm({
 			type: 'number',
 			label: 'Extra',
 			required: true,
-			showIf: { field: 'nome', op: 'answered' },
+			showIf: { field: 'name', op: 'answered' },
 		},
 	],
 });
 
-type Respostas = InferAnswers<typeof form.schema>;
+type Answers = InferAnswers<typeof form.schema>;
 // {
-//   nome: string;               ← obrigatório e sem showIf: sempre presente
-//   cor?: 'azul' | 'verde';     ← union dos ids das opções
+//   name: string;               ← required and no showIf: always present
+//   color?: 'blue' | 'green';   ← union of the option ids
 //   tags?: 'a'[];
-//   extra?: number;             ← obrigatório, mas tem showIf: pode estar escondido
+//   extra?: number;             ← required, but has showIf: may be hidden
 // }
 
 const result = form.validate(input);
-if (result.ok) result.data.cor; // 'azul' | 'verde' | undefined
+if (result.ok) result.data.color; // 'blue' | 'green' | undefined
 ```
 
-Com `parseForm` (schema desconhecido em tempo de compilação), `data` é `Record<string, unknown>`.
+With `parseForm` (schema unknown at compile time), `data` is `Record<string, unknown>`.
 
 ---
 
-## Textos em vários idiomas
+## Multilingual texts
 
-Qualquer texto (`label`, `description`, `placeholder`, labels de opções, `title`…) pode ser uma string ou um mapa de idiomas:
+Any text (`label`, `description`, `placeholder`, option labels, `title`…) can be a string or a language map:
 
 ```json
 {
-	"id": "nome",
+	"id": "name",
 	"type": "text",
-	"label": { "pt": "Seu nome", "en": "Your name" }
+	"label": { "en": "Your name", "pt": "Seu nome" }
 }
 ```
 
 ```ts
 import { resolveText } from '@excalibur-form/core';
 
-resolveText(field.label, 'en'); // 'Your name'
-resolveText(field.label, 'es', 'pt'); // 'Seu nome' (fallback)
-resolveText(field.label, 'es'); // 'Seu nome' (primeiro disponível)
-resolveText('Texto simples', 'en'); // 'Texto simples'
+resolveText(field.label, 'pt'); // 'Seu nome'
+resolveText(field.label, 'pt-BR'); // 'Seu nome' (region falls back to the language)
+resolveText(field.label, 'es', 'en'); // 'Your name' (fallback)
+resolveText(field.label, 'es'); // 'Your name' (first available)
+resolveText('Plain text', 'pt'); // 'Plain text'
 ```
+
+The library's own texts (export labels like "Yes"/"No" and the React package's default messages and button) are in **English by default** and switch to **Brazilian Portuguese** with `locale: 'pt'` or `'pt-BR'` (Spanish is built in too, with `'es'`).
 
 ---
 
 ## React (`@excalibur-form/react`)
 
-Pacote opcional com duas peças: um **hook headless** (estado, visibilidade, erros e envio, sem renderizar nada) e um **`<FormRenderer>`** com componentes padrão **sem estilo**, cada um trocável.
+An optional package with two pieces: a **headless hook** (state, visibility, errors and submit, rendering nothing) and a **`<FormRenderer>`** with **unstyled** default components, each one swappable.
 
 ```bash
-pnpm add @excalibur-form/react   # quando publicado; peer: react 18 ou 19
+pnpm add @excalibur-form/react   # once published; peer: react 18 or 19
 ```
 
-### O jeito rápido
+### The quick way
 
 ```tsx
 import { defineForm } from '@excalibur-form/core';
 import { FormRenderer } from '@excalibur-form/react';
 
-const vistoria = defineForm({ ... });
+const inspection = defineForm({ ... });
 
-export function Vistoria() {
+export function Inspection() {
 	return (
 		<FormRenderer
-			form={vistoria}
-			locale="pt-BR"
+			form={inspection}
+			locale="en" // or "pt-BR"
 			onSubmit={async (data) => {
-				// `data` já validado e tipado
-				await fetch('/api/vistorias', {
+				// `data` is validated and typed
+				await fetch('/api/inspections', {
 					method: 'POST',
 					body: JSON.stringify(data),
 				});
@@ -661,19 +667,19 @@ export function Vistoria() {
 }
 ```
 
-O renderer cuida de:
+The renderer takes care of:
 
-- mostrar só os campos visíveis (as condições reagem enquanto a pessoa preenche);
-- erros depois que o campo perde o foco, ou de todos ao tentar enviar, e **foco no primeiro campo com erro**;
-- acessibilidade: `<label>` ligado ao input, `<fieldset>`/`<legend>` pra radios e checkboxes, `aria-invalid`, `aria-describedby` apontando pra descrição e pros erros;
-- mensagens de erro padrão em pt, en e es (`formatError` pra usar as suas);
-- desabilitar o form enquanto o `onSubmit` assíncrono roda.
+- showing only visible fields (conditions react while the user fills in the form);
+- errors once a field loses focus, or all of them on a submit attempt, and **focus on the first invalid field**;
+- accessibility: `<label>` tied to the input, `<fieldset>`/`<legend>` for radios and checkboxes, `aria-invalid`, and `aria-describedby` pointing to the description and the errors;
+- default error messages in English, Portuguese and Spanish, picked by `locale` (English when there's none; `formatError` to use your own);
+- disabling the form while an async `onSubmit` runs.
 
-Com schema vindo do banco, monte o `Form` com `parseForm` dentro de um `useMemo` e trate o `ok: false`.
+With a schema from the database, build the `Form` with `parseForm` inside a `useMemo` and handle `ok: false`.
 
-### Trocando componentes
+### Swapping components
 
-Qualquer tipo pode usar o seu componente; os outros continuam com o padrão.
+Any type can use your own component; the others keep the default.
 
 ```tsx
 import type { BooleanField } from '@excalibur-form/core';
@@ -702,56 +708,56 @@ function Switch({
 
 <FormRenderer
 	form={form}
-	components={{ boolean: Switch, cpf: MeuInputDeCpf }} // tipos customizados entram pelo nome
-	FieldWrapper={MinhaMoldura} // label + descrição + erros
+	components={{ boolean: Switch, cpf: MyCpfInput }} // custom types go in by name
+	FieldWrapper={MyFrame} // label + description + errors
 >
-	<button type="submit">Salvar</button> {/* substitui o botão padrão */}
+	<button type="submit">Save</button> {/* replaces the default button */}
 </FormRenderer>;
 ```
 
-Cada componente recebe `FieldInputProps`: `field`, `id`, `value`, `onChange`, `onBlur`, `invalid`, `required`, `disabled`, `describedBy`, `t` (resolve `LocalizedText`), `labels` ("Sim"/"Não") e `locale`. A `section` recebe `{ field, title, description }`. Componente com vários controles (tipo radios) pode declarar `MeuComponente.group = true` pra moldura padrão usar `<fieldset>`.
+Each component receives `FieldInputProps`: `field`, `id`, `value`, `onChange`, `onBlur`, `invalid`, `required`, `disabled`, `describedBy`, `t` (resolves `LocalizedText`), `labels` ("Yes"/"No") and `locale`. A `section` receives `{ field, title, description }`. A component with several controls (like radios) can set `MyComponent.group = true` so the default frame uses `<fieldset>`.
 
-Os componentes padrão não trazem CSS, mas têm classes estáveis pra estilizar: `ef-form`, `ef-field` (com `data-invalid` quando há erro), `ef-label`, `ef-required`, `ef-description`, `ef-input`, `ef-options`, `ef-option`, `ef-boolean`, `ef-scale`, `ef-scale-steps`, `ef-scale-label`, `ef-section`, `ef-errors`, `ef-error` e `ef-submit`. A demo tem um exemplo em [`apps/demo/src/styles.css`](apps/demo/src/styles.css).
+The default components ship no CSS, but have stable class names to style: `ef-form`, `ef-field` (with `data-invalid` when there's an error), `ef-label`, `ef-required`, `ef-description`, `ef-input`, `ef-options`, `ef-option`, `ef-boolean`, `ef-scale`, `ef-scale-steps`, `ef-scale-label`, `ef-section`, `ef-errors`, `ef-error` and `ef-submit`. The demo has an example in [`apps/demo/src/styles.css`](apps/demo/src/styles.css).
 
-### Só o hook
+### Just the hook
 
-Pra montar a UI do zero (ou ler o estado de fora do renderer):
+To build the UI from scratch (or read the state from outside the renderer):
 
 ```tsx
 import { useExcaliburForm } from '@excalibur-form/react';
 
 const ctl = useExcaliburForm(form, {
-	initialAnswers: rascunho,
-	onSubmit: salvar,
-	showErrors: 'touched', // 'touched' (padrão) | 'submit' | 'always'
+	initialAnswers: draft,
+	onSubmit: save,
+	showErrors: 'touched', // 'touched' (default) | 'submit' | 'always'
 });
 
-ctl.answers; // respostas cruas (inclusive de campos escondidos agora)
+ctl.answers; // raw answers (including fields hidden right now)
 ctl.visibleFieldIds; // Set
-ctl.result; // form.validate(answers), sempre atualizado
-ctl.errors; // Map fieldId → erros que devem aparecer agora
-ctl.fieldState('placa'); // { field, visible, value, errors, invalid, touched, onChange, onBlur }
-ctl.setAnswer('placa', 'ABC1D23');
+ctl.result; // form.validate(answers), always up to date
+ctl.errors; // Map fieldId → errors that should show right now
+ctl.fieldState('plate'); // { field, visible, value, errors, invalid, touched, onChange, onBlur }
+ctl.setAnswer('plate', 'ABC1D23');
 ctl.reset();
-ctl.handleSubmit; // use no onSubmit do <form>
+ctl.handleSubmit; // use it as the <form> onSubmit
 ctl.isSubmitting;
 ctl.submitCount;
 ```
 
-O mesmo `ctl` pode ir pro renderer: `<FormRenderer controller={ctl} />`. É assim que a demo mostra as respostas cruas e o resultado ao lado do form.
+The same `ctl` can go to the renderer: `<FormRenderer controller={ctl} />`. That's how the demo shows the raw answers and the result next to the form.
 
-> **Segurança:** os componentes padrão renderizam labels e descrições como texto. Se fizer os seus, nunca use `dangerouslySetInnerHTML` com textos do schema.
+> **Security:** the default components render labels and descriptions as text. If you write your own, never use `dangerouslySetInnerHTML` with schema texts.
 
 ---
 
-## Usando no backend
+## Using it on the back end
 
-O ponto principal: **o back valida com a mesma função do front**. Nunca confie no que o front mandou.
+The main point: **the back end validates with the same function as the front end**. Never trust what the front end sent.
 
 ```ts
 import { parseForm } from '@excalibur-form/core';
 
-// 1. Ao SALVAR um schema (vindo do painel/builder)
+// 1. When SAVING a schema (from the admin panel/builder)
 app.post('/forms', async (req, res) => {
 	const parsed = parseForm(req.body);
 	if (!parsed.ok) return res.status(400).json({ issues: parsed.issues });
@@ -763,16 +769,16 @@ app.post('/forms', async (req, res) => {
 	res.status(201).end();
 });
 
-// 2. Ao RECEBER respostas
+// 2. When RECEIVING answers
 app.post('/forms/:id/responses', async (req, res) => {
 	const row = await db.forms.findLatest(req.params.id);
 	const parsed = parseForm(row.schema);
-	if (!parsed.ok) throw new Error('schema salvo está inválido');
+	if (!parsed.ok) throw new Error('stored schema is invalid');
 
 	const result = parsed.value.validate(req.body);
 	if (!result.ok) return res.status(422).json({ errors: result.errors });
 
-	// salve a versão junto: assim respostas antigas continuam legíveis
+	// store the version too, so old answers stay readable
 	await db.responses.insert({
 		formId: row.id,
 		formVersion: row.version,
@@ -782,17 +788,17 @@ app.post('/forms/:id/responses', async (req, res) => {
 });
 ```
 
-Dicas:
+Tips:
 
-- **Guarde `formVersion` em cada resposta** e mantenha um snapshot do schema por versão. Assim dá pra exibir respostas antigas mesmo depois de editar o form.
-- Faça cache do `form` montado por `(id, version)` se o volume for alto. O `parseForm` é rápido, mas não precisa rodar a cada request.
-- Salve `result.data` (o valor limpo), não o `req.body`.
+- **Store `formVersion` with every response** and keep a schema snapshot per version. That way you can show old answers even after editing the form.
+- Cache the built `form` by `(id, version)` if traffic is high. `parseForm` is fast, but there's no need to run it on every request.
+- Store `result.data` (the clean value), not `req.body`.
 
 ---
 
-## Exportando respostas
+## Exporting answers
 
-Depois de validar, `result.data` pode sair em vários formatos. Os exporters recebem o `form` e os dados **já validados** (eles não validam de novo, mas descartam campos escondidos e chaves desconhecidas). Todos seguem a ordem do schema e usam a `key` do campo (padrão: o `id`).
+After validating, `result.data` can go out in several formats. The exporters take the `form` and the **already validated** data (they don't validate again, but they drop hidden fields and unknown keys). They all follow schema order and use the field's `key` (default: its `id`).
 
 ```ts
 import {
@@ -807,53 +813,56 @@ import {
 const result = form.validate(answers);
 if (result.ok) {
 	toJSON(form, result.data);
-	// { placa: 'ABC1D23', opcionais: ['teto', 'ar'], tem_multa: true }
+	// { plate: 'ABC1D23', extras: ['sunroof', 'ac'], has_fines: true }
 
-	toQAList(form, result.data, { locale: 'pt-BR' });
-	// [{ kind: 'answer', question: 'Placa', answer: 'ABC1D23', value: 'ABC1D23', ... },
-	//  { kind: 'answer', question: 'Opcionais', answer: 'Teto solar, Ar', value: ['teto', 'ar'], ... },
-	//  { kind: 'answer', question: 'Possui multas?', answer: 'Sim', value: true, ... }]
+	toQAList(form, result.data);
+	// [{ kind: 'answer', question: 'License plate', answer: 'ABC1D23', value: 'ABC1D23', ... },
+	//  { kind: 'answer', question: 'Extras', answer: 'Sunroof, Air conditioning', value: ['sunroof', 'ac'], ... },
+	//  { kind: 'answer', question: 'Any outstanding fines?', answer: 'Yes', value: true, ... }]
 
 	toMarkdown(form, result.data);
-	// # Vistoria
+	// # Vehicle inspection
 	//
-	// ## Dados do veículo
+	// ## Vehicle
 	//
-	// - **Placa:** ABC1D23
-	// - **Opcionais:** Teto solar, Ar
-	// - **Possui multas?:** Sim
+	// - **License plate:** ABC1D23
+	// - **Extras:** Sunroof, Air conditioning
+	// - **Any outstanding fines?:** Yes
 
-	toFormData(form, result.data); // FormData: listas viram várias entradas com a mesma chave
-	toEntries(form, result.data); // os mesmos pares [key, valor], ex.: new URLSearchParams(...)
+	toQAList(form, result.data, { locale: 'pt-BR' });
+	// same list with pt texts from the schema, "Sim"/"Não" and numbers like 1.234,5
+
+	toFormData(form, result.data); // FormData: lists become several entries with the same key
+	toEntries(form, result.data); // the same [key, value] pairs, e.g. new URLSearchParams(...)
 }
 
-// Várias submissões viram linhas de um CSV
-toCSV(form, submissions, { delimiter: ';', bom: true }); // pronto pro Excel em português
+// Several submissions become rows of a CSV
+toCSV(form, submissions, { delimiter: ';', bom: true }); // ready for Excel in decimal-comma locales
 ```
 
-| Função                          | Saída                                                                         |
-| ------------------------------- | ----------------------------------------------------------------------------- |
-| `toJSON(form, data)`            | `{ key: valor }` com os valores crus (ids das opções)                         |
-| `toQAList(form, data, opts?)`   | `[{ question, answer, value, ... }]` legível; com seções, se pedir            |
-| `toMarkdown(form, data, opts?)` | Markdown com título, seções e lista; texto do usuário escapado                |
-| `toCSV(form, rows, opts?)`      | CSV (RFC 4180), uma coluna por campo; campo escondido vira célula vazia       |
-| `toFormData(form, data)`        | `FormData` pronto pra `fetch`                                                 |
-| `toEntries(form, data)`         | `[key, string][]`: booleanos viram `"true"`/`"false"` e listas, várias linhas |
+| Function                        | Output                                                                       |
+| ------------------------------- | ---------------------------------------------------------------------------- |
+| `toJSON(form, data)`            | `{ key: value }` with raw values (option ids)                                |
+| `toQAList(form, data, opts?)`   | Readable `[{ question, answer, value, ... }]`; with sections, if asked       |
+| `toMarkdown(form, data, opts?)` | Markdown with title, sections and a list; user text escaped                  |
+| `toCSV(form, rows, opts?)`      | CSV (RFC 4180), one column per field; hidden fields become empty cells       |
+| `toFormData(form, data)`        | A `FormData` ready for `fetch`                                               |
+| `toEntries(form, data)`         | `[key, string][]`: booleans become `"true"`/`"false"`, lists several entries |
 
-Opções:
+Options:
 
-- **Todos os legíveis** (`toQAList`, `toMarkdown`, `toCSV`): `locale`, `fallbackLocale` e `labels` (`{ yes, no, listSeparator }`, pra trocar "Sim"/"Não"). Números são formatados no idioma pedido (`1.234,5` em `pt-BR`). Sem `locale`, os textos fixos saem em português e os números sem formatação.
-- **`toQAList`**: `includeUnanswered` (campos visíveis sem resposta, com `emptyAnswer`), `includeSections` (`section` vira item de título; seção sem nenhuma resposta depois some).
-- **`toMarkdown`**: as mesmas, mais `title` (padrão `true`). Seções entram por padrão e `emptyAnswer` é `—`.
-- **`toCSV`**: `header: 'label' | 'key'`, `values: 'display' | 'raw'`, `delimiter`, `newline`, `bom` e `escapeFormulas` (padrão `true`: texto que começa com `=`, `+`, `-` ou `@` ganha um `'` na frente pra planilha não executar como fórmula).
+- **All readable ones** (`toQAList`, `toMarkdown`, `toCSV`): `locale`, `fallbackLocale` and `labels` (`{ yes, no, listSeparator }`, to replace "Yes"/"No"). Numbers are formatted for the requested language (`1,234.5` in `en-US`, `1.234,5` in `pt-BR`). With no `locale`, fixed texts are in English and numbers are left unformatted.
+- **`toQAList`**: `includeUnanswered` (visible fields with no answer, using `emptyAnswer`), `includeSections` (a `section` becomes a heading item; sections with no answers after them are skipped).
+- **`toMarkdown`**: the same, plus `title` (default `true`). Sections are included by default and `emptyAnswer` is `—`.
+- **`toCSV`**: `header: 'label' | 'key'`, `values: 'display' | 'raw'`, `delimiter`, `newline`, `bom` and `escapeFormulas` (default `true`: text starting with `=`, `+`, `-` or `@` gets a leading `'` so spreadsheets don't run it as a formula).
 
-O texto legível de cada tipo vem do `toDisplay` dele: `choice` mostra o label da opção, `boolean` mostra "Sim"/"Não" e por aí vai. Tipos customizados podem definir o seu (veja abaixo).
+Each type's readable text comes from its `toDisplay`: `choice` shows the option label, `boolean` shows "Yes"/"No", and so on. Custom types can define their own (see below).
 
 ---
 
-## Tipos de campo customizados
+## Custom field types
 
-Os tipos nativos são implementados com a mesma API que você usa pra criar os seus.
+The built-in types are implemented with the same API you use to create your own.
 
 ```ts
 import {
@@ -866,19 +875,19 @@ import {
 	type FieldBase,
 } from '@excalibur-form/core';
 
-// 1. O formato do campo no schema
+// 1. The field's shape in the schema (a Brazilian CPF tax id here)
 interface CpfField extends FieldBase {
 	readonly type: 'cpf';
 	readonly allowFormatted?: boolean;
 }
 
-// 2. A definição do tipo
+// 2. The type definition
 const cpfType = defineFieldType<CpfField, string>({
 	type: 'cpf',
-	answerable: true, // false pra blocos sem resposta, tipo `section`
-	conditionOps: ['answered', 'notAnswered'], // operadores que outras condições podem usar com este campo
+	answerable: true, // false for blocks without an answer, like `section`
+	conditionOps: ['answered', 'notAnswered'], // operators other conditions may use with this field
 
-	// Valida e limpa a config específica do tipo. As props comuns (id, label, showIf…) a lib já trata.
+	// Validates and cleans the type-specific config. The library handles common props (id, label, showIf…).
 	parseConfig: (reader) => {
 		const allowFormatted = reader.boolean('allowFormatted');
 		return allowFormatted === undefined ? {} : { allowFormatted };
@@ -886,7 +895,7 @@ const cpfType = defineFieldType<CpfField, string>({
 
 	isEmpty: (value) => value === undefined || value === null || value === '',
 
-	// Recebe só valores não vazios. Devolve o valor normalizado ou os erros.
+	// Only receives non-empty values. Returns the normalized value or the errors.
 	validate: (value, field) => {
 		if (typeof value !== 'string') return reject('invalid_type');
 		const digits = field.allowFormatted
@@ -897,138 +906,140 @@ const cpfType = defineFieldType<CpfField, string>({
 			: reject('invalid_format', { format: 'cpf' });
 	},
 
-	// Opcional: texto legível nos exporters (qa-list, CSV, Markdown)
+	// Optional: readable text in the exporters (qa-list, CSV, Markdown)
 	toDisplay: (value) =>
 		`${value.slice(0, 3)}.${value.slice(3, 6)}.${value.slice(6, 9)}-${value.slice(9)}`,
 });
 
-// 3. Registre junto com os nativos
+// 3. Register it alongside the built-ins
 const registry = createRegistry([...builtinFieldTypes, cpfType]);
 
 const parsed = parseForm(schema, { registry });
 ```
 
-O `reader` em `parseConfig` tem helpers que já reportam erros com o caminho certo: `number(key, { integer, min, max })`, `boolean(key)`, `text(key)`, `requiredText(key)`, `oneOf(key, valores)`, `id(key)`, `options(key)` e `issue(key, code, message)` pra problemas próprios. O registry precisa ser o mesmo no front e no back.
+The `reader` in `parseConfig` has helpers that report errors with the right path: `number(key, { integer, min, max })`, `boolean(key)`, `text(key)`, `requiredText(key)`, `oneOf(key, values)`, `id(key)`, `options(key)` and `issue(key, code, message)` for your own problems. The registry must be the same on front end and back end.
 
 ---
 
-## Limites e segurança
+## Limits and security
 
-Como o schema costuma vir de usuários, tudo tem teto. Os padrões:
+Since schemas usually come from users, everything is capped. The defaults:
 
-| Limite                    | Padrão  | O que limita                                |
-| ------------------------- | ------- | ------------------------------------------- |
-| `maxFields`               | 500     | Campos por formulário                       |
-| `maxOptions`              | 200     | Opções por `choice` / `multiChoice`         |
-| `maxTextLength`           | 2.000   | Tamanho de labels, descrições, placeholders |
-| `maxLocales`              | 20      | Idiomas por texto                           |
-| `maxConditionDepth`       | 8       | Aninhamento de `all`/`any`/`not`            |
-| `maxConditionNodes`       | 64      | Tamanho total de um `showIf`                |
-| `maxTextAnswerLength`     | 10.000  | Resposta de `text`                          |
-| `maxLongTextAnswerLength` | 100.000 | Resposta de `longText`                      |
-| `maxScaleSteps`           | 100     | Passos de uma `scale`                       |
+| Limit                     | Default | What it limits                               |
+| ------------------------- | ------- | -------------------------------------------- |
+| `maxFields`               | 500     | Fields per form                              |
+| `maxOptions`              | 200     | Options per `choice` / `multiChoice`         |
+| `maxTextLength`           | 2,000   | Length of labels, descriptions, placeholders |
+| `maxLocales`              | 20      | Languages per text                           |
+| `maxConditionDepth`       | 8       | Nesting of `all`/`any`/`not`                 |
+| `maxConditionNodes`       | 64      | Total size of a `showIf`                     |
+| `maxTextAnswerLength`     | 10,000  | `text` answer                                |
+| `maxLongTextAnswerLength` | 100,000 | `longText` answer                            |
+| `maxScaleSteps`           | 100     | Steps in a `scale`                           |
 
-Pra mudar, passe o mesmo `limits` no front e no back:
+To change them, pass the same `limits` on front end and back end:
 
 ```ts
 parseForm(schema, { limits: { maxFields: 50, maxTextAnswerLength: 500 } });
 ```
 
-O que a lib faz por você:
+What the library does for you:
 
-- **Nada de `eval`**: condições são dados.
-- **Nada de regex vinda do usuário** (evita ReDoS). Os formatos são pré-definidos e checados em tempo linear.
-- **Propriedades herdadas são ignoradas**: `constructor` e `__proto__` nas respostas não fazem nada.
-- **Schema congelado** depois do parse.
+- **No `eval`**: conditions are data.
+- **No user-supplied regex** (avoids ReDoS). Formats are predefined and checked in linear time.
+- **Inherited properties are ignored**: `constructor` and `__proto__` in the answers do nothing.
+- **Frozen schema** after parsing.
 
-O que é com você:
+What's up to you:
 
-- Renderizar textos do schema **como texto**, nunca como HTML.
-- **Validar no back** sempre, com o mesmo schema.
+- Render schema texts **as text**, never as HTML.
+- **Always validate on the back end**, with the same schema.
 
 ---
 
-## Referência da API
+## API reference
 
-| Export                                                           | O que faz                                                                                       |
-| ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `defineForm(schema, options?)`                                   | Cria um `Form` com tipos inferidos; lança `FormSchemaError`                                     |
-| `parseForm(raw, options?)`                                       | Cria um `Form` a partir de dado não confiável; devolve `{ ok, value } \| { ok: false, issues }` |
-| `parseSchema(raw, options?)`                                     | Só valida/limpa o schema, sem montar o `Form`                                                   |
-| `form.validate(answers)`                                         | Valida respostas                                                                                |
-| `form.visibleFieldIds(answers)`                                  | `Set` com os ids visíveis (inclui `section`)                                                    |
-| `form.field(id)`                                                 | Campo pelo id                                                                                   |
-| `form.answerableFields`                                          | Campos com resposta (sem `section`), em ordem                                                   |
-| `form.schema` / `form.limits` / `form.registry`                  | Schema parseado (congelado), limites e registry em uso                                          |
-| `toJSON` / `toQAList` / `toMarkdown` / `toCSV`                   | Exporters (veja [Exportando respostas](#exportando-respostas))                                  |
-| `toFormData` / `toEntries`                                       | Respostas no formato de envio de formulário                                                     |
-| `escapeMarkdown(text)`                                           | Escapa texto pra aparecer literal em Markdown                                                   |
-| `createDisplayContext(opts?)` / `DISPLAY_LABELS`                 | Contexto que o `toDisplay` recebe e textos padrão ("Sim"/"Não") por idioma                      |
-| `evaluateCondition(condition, lookup)`                           | Avalia uma condição isolada                                                                     |
-| `resolveText(text, locale?, fallback?)`                          | Resolve um `LocalizedText`                                                                      |
-| `scaleBounds(field)`                                             | `{ min, max }` de uma `scale` com padrões aplicados                                             |
-| `formatPath(path)`                                               | `['fields', 0, 'id']` → `'fields[0].id'`                                                        |
-| `defineFieldType(def)`                                           | Helper de tipagem pra tipos customizados                                                        |
-| `createRegistry(defs)` / `builtinFieldTypes` / `defaultRegistry` | Registry de tipos de campo                                                                      |
-| `accept(value)` / `reject(code, params?)`                        | Retornos de `validate` em tipos customizados                                                    |
-| `FormSchemaError`                                                | Erro lançado por `defineForm` (tem `.issues`)                                                   |
-| `DEFAULT_LIMITS`                                                 | Limites padrão                                                                                  |
-| `InferAnswers<S>` / `AnswerOf<F>`                                | Tipos inferidos                                                                                 |
+| Export                                                           | What it does                                                                           |
+| ---------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `defineForm(schema, options?)`                                   | Creates a `Form` with inferred types; throws `FormSchemaError`                         |
+| `parseForm(raw, options?)`                                       | Creates a `Form` from untrusted data; returns `{ ok, value } \| { ok: false, issues }` |
+| `parseSchema(raw, options?)`                                     | Only validates/cleans the schema, without building the `Form`                          |
+| `form.validate(answers)`                                         | Validates answers                                                                      |
+| `form.visibleFieldIds(answers)`                                  | `Set` of visible ids (includes `section`)                                              |
+| `form.field(id)`                                                 | Field by id                                                                            |
+| `form.answerableFields`                                          | Answerable fields (no `section`), in order                                             |
+| `form.schema` / `form.limits` / `form.registry`                  | Parsed (frozen) schema, limits and registry in use                                     |
+| `toJSON` / `toQAList` / `toMarkdown` / `toCSV`                   | Exporters (see [Exporting answers](#exporting-answers))                                |
+| `toFormData` / `toEntries`                                       | Answers in form-submission format                                                      |
+| `escapeMarkdown(text)`                                           | Escapes text so it shows up literally in Markdown                                      |
+| `createDisplayContext(opts?)` / `DISPLAY_LABELS`                 | Context that `toDisplay` receives, and the default "Yes"/"No" texts per language       |
+| `evaluateCondition(condition, lookup)`                           | Evaluates a single condition                                                           |
+| `resolveText(text, locale?, fallback?)`                          | Resolves a `LocalizedText`                                                             |
+| `scaleBounds(field)`                                             | `{ min, max }` of a `scale` with defaults applied                                      |
+| `formatPath(path)`                                               | `['fields', 0, 'id']` → `'fields[0].id'`                                               |
+| `defineFieldType(def)`                                           | Typing helper for custom types                                                         |
+| `createRegistry(defs)` / `builtinFieldTypes` / `defaultRegistry` | Field type registry                                                                    |
+| `accept(value)` / `reject(code, params?)`                        | Return values for `validate` in custom types                                           |
+| `FormSchemaError`                                                | Error thrown by `defineForm` (has `.issues`)                                           |
+| `DEFAULT_LIMITS`                                                 | Default limits                                                                         |
+| `InferAnswers<S>` / `AnswerOf<F>`                                | Inferred types                                                                         |
 
 `options` = `{ registry?: FieldRegistry; limits?: Partial<SchemaLimits> }`.
 
 **`@excalibur-form/react`**
 
-| Export                                  | O que faz                                                                    |
-| --------------------------------------- | ---------------------------------------------------------------------------- |
-| `useExcaliburForm(form, options?)`      | Estado headless do form; devolve o `controller`                              |
-| `<FormRenderer form \| controller … />` | Renderiza o form inteiro com componentes trocáveis                           |
-| `defaultComponents`                     | Componentes padrão por tipo (`TextInput`, `BooleanInput`… também exportados) |
-| `FieldWrapper` / `Section`              | Moldura e seção padrão                                                       |
-| `defaultErrorMessage(issue, locale?)`   | Mensagem padrão de um erro (pt, en, es)                                      |
-| `FieldInputProps` / `FieldWrapperProps` | Tipos pra escrever componentes próprios                                      |
+| Export                                  | What it does                                                               |
+| --------------------------------------- | -------------------------------------------------------------------------- |
+| `useExcaliburForm(form, options?)`      | Headless form state; returns the `controller`                              |
+| `<FormRenderer form \| controller … />` | Renders the whole form with swappable components                           |
+| `defaultComponents`                     | Default components by type (`TextInput`, `BooleanInput`… exported as well) |
+| `FieldWrapper` / `Section`              | Default frame and section                                                  |
+| `defaultErrorMessage(issue, locale?)`   | Default message for an error (en, pt, es; English by default)              |
+| `FieldInputProps` / `FieldWrapperProps` | Types for writing your own components                                      |
 
-`options` do hook = `{ initialAnswers?, onSubmit?, onInvalid?, showErrors? }`. O `<FormRenderer>` aceita as mesmas mais `components`, `FieldWrapper`, `locale`, `fallbackLocale`, `labels`, `formatError`, `submitLabel`, `disabled`, `className`, `focusOnError` e `children`.
+Hook `options` = `{ initialAnswers?, onSubmit?, onInvalid?, showErrors? }`. `<FormRenderer>` takes the same plus `components`, `FieldWrapper`, `locale`, `fallbackLocale`, `labels`, `formatError`, `submitLabel`, `disabled`, `className`, `focusOnError` and `children`.
 
 ---
 
-## Desenvolvimento
+## Development
 
 ```
-packages/core   @excalibur-form/core: a lib
-packages/react  @excalibur-form/react: hook e renderer pra React
-apps/demo       demo em Vite + React (usa o pacote react)
-docs/PLAN.md    plano e roadmap
+packages/core   @excalibur-form/core: the library
+packages/react  @excalibur-form/react: hook and renderer for React
+apps/demo       Vite + React demo (uses the react package), in English and pt-BR
+docs/PLAN.md    plan and roadmap (PLAN.pt-BR.md in Portuguese)
 ```
 
 ```bash
 pnpm install
 pnpm dev            # demo
-pnpm test           # testes (vitest)
-pnpm test:cov       # com cobertura
-pnpm check          # format + lint + typecheck + testes + build (o mesmo que o CI roda)
-pnpm format         # formata (oxfmt)
+pnpm test           # tests (vitest)
+pnpm test:cov       # with coverage
+pnpm check          # format + lint + typecheck + tests + build (same as CI)
+pnpm format         # format (oxfmt)
 ```
 
-Stack: TypeScript 7 (strict, `isolatedDeclarations`, `exactOptionalPropertyTypes`), vitest (+ Testing Library e jsdom no pacote React), oxlint, oxfmt, changesets e GitHub Actions.
+Stack: TypeScript 7 (strict, `isolatedDeclarations`, `exactOptionalPropertyTypes`), vitest (+ Testing Library and jsdom in the React package), oxlint, oxfmt, changesets and GitHub Actions.
+
+**Languages:** code, comments, tests and the main docs are in English. Docs have a Brazilian Portuguese version (`*.pt-BR.md`); when you change one, update the other.
 
 ---
 
 ## Roadmap
 
-- [x] **Fase 0**: monorepo, tooling, CI
-- [x] **Fase 1**: core (schema, 8 tipos de campo, condições, validação, tipos inferidos)
+- [x] **Phase 0**: monorepo, tooling, CI
+- [x] **Phase 1**: core (schema, 8 field types, conditions, validation, inferred types)
 - [x] Demo
-- [x] **Fase 2**: exportadores (JSON por `key`, lista pergunta/resposta, CSV, FormData, Markdown)
-- [x] **Fase 3**: `@excalibur-form/react` (renderer headless com componentes trocáveis)
-- [ ] **Fase 4**: `@excalibur-form/builder` (montar o form visualmente)
-- [ ] **Fase 5**: versionamento de respostas, docs e publicação no npm
-- [ ] Mais tipos: `date`, `file`/`image`, grupos repetíveis, matriz
+- [x] **Phase 2**: exporters (JSON by `key`, question/answer list, CSV, FormData, Markdown)
+- [x] **Phase 3**: `@excalibur-form/react` (headless renderer with swappable components)
+- [ ] **Phase 4**: `@excalibur-form/builder` (build the form visually)
+- [ ] **Phase 5**: answer versioning, docs and npm release
+- [ ] More types: `date`, `file`/`image`, repeatable groups, matrix
 
-Detalhes em [docs/PLAN.md](docs/PLAN.md).
+Details in [docs/PLAN.md](docs/PLAN.md).
 
 ---
 
-## Licença
+## License
 
 [MIT](LICENSE)

@@ -16,13 +16,13 @@ import {
 
 export interface ReferencedField {
 	readonly index: number;
-	/** Ausente quando o campo existe mas teve erro de schema. */
+	/** Missing when the field exists but has a schema error. */
 	readonly field?: FieldBase;
 	readonly definition?: FieldTypeDefinition;
 }
 
 export interface ConditionParseContext {
-	/** Posição do campo dono do `showIf`. Só pode referenciar campos antes dele. */
+	/** Index of the field that owns the `showIf`. Only earlier fields can be referenced. */
 	readonly ownerIndex: number;
 	readonly lookup: (fieldId: string) => ReferencedField | undefined;
 	readonly limits: Readonly<SchemaLimits>;
@@ -167,7 +167,7 @@ function parseLeaf(
 			`field "${fieldId}" must come before the field that depends on it`,
 		);
 	}
-	// Campo referenciado com erro de schema: o problema já foi reportado lá.
+	// Referenced field has a schema error: that problem was already reported there.
 	if (ref.field === undefined || ref.definition === undefined)
 		return undefined;
 	const { field, definition } = ref;

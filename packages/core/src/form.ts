@@ -14,23 +14,23 @@ import {
 import type { BuiltinField, FieldBase, FormSchema } from './schema/types.ts';
 import type { ValidationError, ValidationResult } from './validation/errors.ts';
 
-/** Respostas ainda não validadas, indexadas pelo `id` do campo. */
+/** Answers not validated yet, keyed by field `id`. */
 export type AnswerInput = Readonly<Record<string, unknown>>;
 
 export interface Form<S extends FormSchema = FormSchema> {
 	readonly schema: S;
 	readonly limits: Readonly<SchemaLimits>;
-	/** Registry de tipos usado no parse (os exporters usam o `toDisplay`). */
+	/** Field type registry used when parsing (exporters use its `toDisplay`). */
 	readonly registry: FieldRegistry;
-	/** Campo pelo `id`. */
+	/** Field by `id`. */
 	field(id: string): S['fields'][number] | undefined;
-	/** Campos com resposta (sem `section`), na ordem do schema. */
+	/** Answerable fields (no `section`), in schema order. */
 	readonly answerableFields: readonly S['fields'][number][];
-	/** IDs dos campos visíveis pras respostas atuais (inclui `section`). */
+	/** IDs of the fields visible for the given answers (includes `section`). */
 	visibleFieldIds(answers: AnswerInput): ReadonlySet<string>;
 	/**
-	 * Valida as respostas. Campos escondidos e chaves desconhecidas são
-	 * descartados; `data` só tem respostas visíveis e preenchidas.
+	 * Validates the answers. Hidden fields and unknown keys are dropped;
+	 * `data` only has visible, filled-in answers.
 	 */
 	validate(answers: unknown): ValidationResult<InferAnswers<S>>;
 }
@@ -48,7 +48,7 @@ function buildForm<S extends FormSchema>(
 	const limits = resolveLimits(options);
 	const resolved: ResolvedField[] = schema.fields.map((field) => ({
 		field,
-		// parseSchema já garantiu que o tipo existe neste registry.
+		// parseSchema already ensured the type exists in this registry.
 		definition: registry.get(field.type) as FieldTypeDefinition,
 	}));
 	const byId = new Map(schema.fields.map((field) => [field.id, field]));
@@ -124,8 +124,8 @@ function buildForm<S extends FormSchema>(
 }
 
 /**
- * Define um form em código, com tipos inferidos. Valida o schema na hora e
- * lança `FormSchemaError` se estiver inválido.
+ * Defines a form in code, with inferred types. Validates the schema right
+ * away and throws `FormSchemaError` if it's invalid.
  */
 export function defineForm<const S extends FormSchema<BuiltinField>>(
 	schema: S,
@@ -136,7 +136,7 @@ export function defineForm<const S extends FormSchema<BuiltinField>>(
 	return buildForm(parsed.value as unknown as S, options);
 }
 
-/** Monta um form a partir de um schema não confiável (banco, API, builder). */
+/** Builds a form from an untrusted schema (database, API, builder). */
 export function parseForm(
 	raw: unknown,
 	options: ParseOptions = {},

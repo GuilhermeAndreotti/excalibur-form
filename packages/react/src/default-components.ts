@@ -10,7 +10,7 @@ import {
 	type FieldComponents,
 } from './components.tsx';
 
-/** Componentes padrão de cada tipo nativo. */
+/** Default components for each built-in type. */
 export const defaultComponents: FieldComponents = Object.freeze({
 	text: TextInput,
 	longText: LongTextInput,

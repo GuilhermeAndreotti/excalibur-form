@@ -14,14 +14,14 @@ export type ValidationCode =
 
 export type ValidationParams = Readonly<Record<string, string | number>>;
 
-/** Problema de uma resposta. Vem só o código: cada app traduz como quiser. */
+/** Problem with an answer. Only the code comes back: each app translates it. */
 export interface AnswerIssue {
 	readonly code: ValidationCode;
 	readonly params?: ValidationParams;
 }
 
 export interface ValidationError extends AnswerIssue {
-	/** `null` quando o problema é no objeto de respostas como um todo. */
+	/** `null` when the problem is with the answers object as a whole. */
 	readonly fieldId: string | null;
 }
 

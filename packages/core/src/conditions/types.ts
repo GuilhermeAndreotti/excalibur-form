@@ -55,8 +55,8 @@ export type FieldCondition =
 	| PresenceCondition;
 
 /**
- * Condição em JSON puro (nunca `eval`). Comparações só batem com campos
- * respondidos e visíveis; pra incluir vazios use `notAnswered` dentro de `any`.
+ * Condition as plain JSON (never `eval`). Comparisons only match answered,
+ * visible fields; to include empty ones, use `notAnswered` inside `any`.
  */
 export type Condition =
 	| AllCondition

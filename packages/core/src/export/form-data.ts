@@ -14,9 +14,9 @@ function serialize(value: unknown): string {
 }
 
 /**
- * Pares `[key, valor]` no formato de envio de formulário: listas viram uma
- * entrada por item (com a mesma chave), booleanos viram `"true"`/`"false"`.
- * Serve pra `URLSearchParams` também.
+ * `[key, value]` pairs in form-submission format: lists become one entry per
+ * item (same key), booleans become `"true"`/`"false"`. Also works with
+ * `URLSearchParams`.
  */
 export function toEntries(form: Form, data: AnswerInput): [string, string][] {
 	const entries: [string, string][] = [];
@@ -30,7 +30,7 @@ export function toEntries(form: Form, data: AnswerInput): [string, string][] {
 	return entries;
 }
 
-/** As mesmas entradas de `toEntries`, num `FormData` novo. */
+/** The same entries as `toEntries`, in a new `FormData`. */
 export function toFormData(form: Form, data: AnswerInput): FormData {
 	const formData = new FormData();
 	for (const [key, value] of toEntries(form, data)) {

@@ -1,203 +1,251 @@
+import type { LocalizedText } from '@excalibur-form/core';
+
 export interface Example {
-	readonly name: string;
+	readonly name: LocalizedText;
 	readonly schema: unknown;
 }
 
-const vistoria = {
-	id: 'vistoria',
+// Every text is in English and Brazilian Portuguese: switch the language in
+// the demo toolbar to see the same schema in both.
+
+const inspection = {
+	id: 'vehicle-inspection',
 	version: 1,
-	title: 'Vistoria de veículo',
+	title: { en: 'Vehicle inspection', pt: 'Vistoria de veículo' },
 	fields: [
-		{ id: 'intro', type: 'section', label: 'Dados do veículo' },
 		{
-			id: 'placa',
+			id: 'vehicle',
+			type: 'section',
+			label: { en: 'Vehicle', pt: 'Dados do veículo' },
+		},
+		{
+			id: 'plate',
 			type: 'text',
-			label: 'Placa',
+			label: { en: 'License plate', pt: 'Placa' },
 			required: true,
 			maxLength: 8,
 		},
 		{
-			id: 'combustivel',
+			id: 'fuel',
 			type: 'choice',
-			label: 'Combustível',
+			label: { en: 'Fuel', pt: 'Combustível' },
 			required: true,
 			options: [
 				{ id: 'flex', label: 'Flex' },
 				{ id: 'diesel', label: 'Diesel' },
-				{ id: 'eletrico', label: 'Elétrico' },
+				{ id: 'electric', label: { en: 'Electric', pt: 'Elétrico' } },
 			],
 		},
 		{
-			id: 'autonomia',
+			id: 'range',
 			type: 'number',
-			label: 'Autonomia (km)',
+			label: { en: 'Range (km)', pt: 'Autonomia (km)' },
 			integer: true,
 			min: 0,
-			showIf: { field: 'combustivel', op: 'eq', value: 'eletrico' },
+			showIf: { field: 'fuel', op: 'eq', value: 'electric' },
 		},
 		{
-			id: 'opcionais',
+			id: 'extras',
 			type: 'multiChoice',
-			label: 'Opcionais',
+			label: { en: 'Extras', pt: 'Opcionais' },
 			maxSelected: 3,
 			options: [
-				{ id: 'ar', label: 'Ar-condicionado' },
-				{ id: 'teto', label: 'Teto solar' },
-				{ id: 'couro', label: 'Bancos de couro' },
-				{ id: 'camera', label: 'Câmera de ré' },
+				{
+					id: 'ac',
+					label: { en: 'Air conditioning', pt: 'Ar-condicionado' },
+				},
+				{ id: 'sunroof', label: { en: 'Sunroof', pt: 'Teto solar' } },
+				{
+					id: 'leather',
+					label: { en: 'Leather seats', pt: 'Bancos de couro' },
+				},
+				{
+					id: 'camera',
+					label: { en: 'Rear camera', pt: 'Câmera de ré' },
+				},
 			],
 		},
-		{ id: 'situacao', type: 'section', label: 'Situação' },
 		{
-			id: 'tem_multa',
+			id: 'status',
+			type: 'section',
+			label: { en: 'Status', pt: 'Situação' },
+		},
+		{
+			id: 'has_fines',
 			type: 'boolean',
-			label: 'Possui multas?',
+			label: { en: 'Any outstanding fines?', pt: 'Possui multas?' },
 			required: true,
 		},
 		{
-			id: 'valor_multas',
+			id: 'fines_total',
 			type: 'number',
-			label: 'Valor total das multas (R$)',
+			label: { en: 'Total fines amount', pt: 'Valor total das multas' },
 			required: true,
 			min: 0,
-			showIf: { field: 'tem_multa', op: 'eq', value: true },
+			showIf: { field: 'has_fines', op: 'eq', value: true },
 		},
 		{
-			id: 'estado',
+			id: 'condition',
 			type: 'scale',
-			label: 'Estado geral',
+			label: { en: 'Overall condition', pt: 'Estado geral' },
 			min: 1,
 			max: 10,
-			minLabel: 'Ruim',
-			maxLabel: 'Impecável',
+			minLabel: { en: 'Poor', pt: 'Ruim' },
+			maxLabel: { en: 'Flawless', pt: 'Impecável' },
 		},
 		{
-			id: 'obs',
+			id: 'notes',
 			type: 'longText',
-			label: 'Observações',
-			description: 'Aparece quando a nota é 5 ou menos.',
+			label: { en: 'Notes', pt: 'Observações' },
+			description: {
+				en: 'Shows up when the rating is 5 or lower.',
+				pt: 'Aparece quando a nota é 5 ou menos.',
+			},
 			required: true,
-			showIf: { field: 'estado', op: 'lte', value: 5 },
+			showIf: { field: 'condition', op: 'lte', value: 5 },
 		},
 	],
 };
 
-const ficha = {
-	id: 'ficha',
+const character = {
+	id: 'character-sheet',
 	version: 1,
-	title: 'Ficha de personagem',
+	title: { en: 'Character sheet', pt: 'Ficha de personagem' },
 	fields: [
 		{
-			id: 'nome',
+			id: 'name',
 			type: 'text',
-			label: 'Nome do personagem',
+			label: { en: 'Character name', pt: 'Nome do personagem' },
 			required: true,
 		},
 		{
-			id: 'classe',
+			id: 'class',
 			type: 'choice',
-			label: 'Classe',
+			label: { en: 'Class', pt: 'Classe' },
 			required: true,
 			options: [
-				{ id: 'guerreiro', label: 'Guerreiro' },
-				{ id: 'mago', label: 'Mago' },
-				{ id: 'ladino', label: 'Ladino' },
+				{ id: 'warrior', label: { en: 'Warrior', pt: 'Guerreiro' } },
+				{ id: 'wizard', label: { en: 'Wizard', pt: 'Mago' } },
+				{ id: 'rogue', label: { en: 'Rogue', pt: 'Ladino' } },
 			],
 		},
 		{
-			id: 'nivel',
+			id: 'level',
 			type: 'number',
-			label: 'Nível',
+			label: { en: 'Level', pt: 'Nível' },
 			integer: true,
 			min: 1,
 			max: 20,
 			required: true,
 		},
 		{
-			id: 'escola',
+			id: 'school',
 			type: 'choice',
-			label: 'Escola de magia',
-			showIf: { field: 'classe', op: 'eq', value: 'mago' },
+			label: { en: 'School of magic', pt: 'Escola de magia' },
+			showIf: { field: 'class', op: 'eq', value: 'wizard' },
 			options: [
-				{ id: 'evocacao', label: 'Evocação' },
-				{ id: 'ilusao', label: 'Ilusão' },
+				{ id: 'evocation', label: { en: 'Evocation', pt: 'Evocação' } },
+				{ id: 'illusion', label: { en: 'Illusion', pt: 'Ilusão' } },
 			],
 		},
 		{
-			id: 'pericias',
+			id: 'skills',
 			type: 'multiChoice',
-			label: 'Perícias',
+			label: { en: 'Skills', pt: 'Perícias' },
 			minSelected: 1,
 			maxSelected: 2,
 			options: [
-				{ id: 'furtividade', label: 'Furtividade' },
-				{ id: 'atletismo', label: 'Atletismo' },
-				{ id: 'arcanismo', label: 'Arcanismo' },
-				{ id: 'percepcao', label: 'Percepção' },
+				{ id: 'stealth', label: { en: 'Stealth', pt: 'Furtividade' } },
+				{
+					id: 'athletics',
+					label: { en: 'Athletics', pt: 'Atletismo' },
+				},
+				{ id: 'arcana', label: { en: 'Arcana', pt: 'Arcanismo' } },
+				{
+					id: 'perception',
+					label: { en: 'Perception', pt: 'Percepção' },
+				},
 			],
 		},
 		{
-			id: 'subterfugio',
+			id: 'sneaky',
 			type: 'section',
-			label: 'Ladino furtivo',
-			description: 'Esta seção aparece pra ladinos com Furtividade.',
+			label: { en: 'Sneaky rogue', pt: 'Ladino furtivo' },
+			description: {
+				en: 'This section shows up for rogues with Stealth.',
+				pt: 'Esta seção aparece pra ladinos com Furtividade.',
+			},
 			showIf: {
 				all: [
-					{ field: 'classe', op: 'eq', value: 'ladino' },
-					{ field: 'pericias', op: 'includes', value: 'furtividade' },
+					{ field: 'class', op: 'eq', value: 'rogue' },
+					{ field: 'skills', op: 'includes', value: 'stealth' },
 				],
 			},
 		},
-		{ id: 'historia', type: 'longText', label: 'História', maxLength: 500 },
+		{
+			id: 'backstory',
+			type: 'longText',
+			label: { en: 'Backstory', pt: 'História' },
+			maxLength: 500,
+		},
 	],
 };
 
-const pesquisa = {
-	id: 'pesquisa',
+const survey = {
+	id: 'satisfaction-survey',
 	version: 3,
-	title: { pt: 'Pesquisa de satisfação', en: 'Satisfaction survey' },
+	title: { en: 'Satisfaction survey', pt: 'Pesquisa de satisfação' },
 	fields: [
 		{
 			id: 'nps',
 			type: 'scale',
 			label: {
-				pt: 'Quanto você recomendaria a gente?',
 				en: 'How likely are you to recommend us?',
+				pt: 'Quanto você recomendaria a gente?',
 			},
 			min: 0,
 			max: 10,
 			required: true,
 		},
 		{
-			id: 'motivo',
+			id: 'improve',
 			type: 'longText',
 			label: {
-				pt: 'O que podemos melhorar?',
 				en: 'What could we improve?',
+				pt: 'O que podemos melhorar?',
 			},
 			showIf: { field: 'nps', op: 'lt', value: 7 },
 		},
 		{
-			id: 'contato',
+			id: 'contact',
 			type: 'boolean',
 			label: {
-				pt: 'Podemos entrar em contato?',
 				en: 'May we contact you?',
+				pt: 'Podemos entrar em contato?',
 			},
 		},
 		{
 			id: 'email',
 			type: 'text',
 			format: 'email',
-			label: { pt: 'Seu e-mail', en: 'Your email' },
+			label: { en: 'Your email', pt: 'Seu e-mail' },
 			required: true,
-			showIf: { field: 'contato', op: 'eq', value: true },
+			showIf: { field: 'contact', op: 'eq', value: true },
 		},
 	],
 };
 
 export const EXAMPLES: readonly Example[] = [
-	{ name: 'Vistoria de veículo', schema: vistoria },
-	{ name: 'Ficha de RPG', schema: ficha },
-	{ name: 'Pesquisa (pt/en)', schema: pesquisa },
+	{
+		name: { en: 'Vehicle inspection', pt: 'Vistoria de veículo' },
+		schema: inspection,
+	},
+	{
+		name: { en: 'RPG character sheet', pt: 'Ficha de RPG' },
+		schema: character,
+	},
+	{
+		name: { en: 'Satisfaction survey', pt: 'Pesquisa de satisfação' },
+		schema: survey,
+	},
 ];

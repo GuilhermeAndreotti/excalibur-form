@@ -226,7 +226,7 @@ button:focus-visible {
 	cursor: pointer;
 }
 
-/* Sim/Não e escala viram botões: o radio continua lá, só fica invisível. */
+/* Yes/No and scale render as buttons: the radio is still there, just invisible. */
 .ef-boolean,
 .ef-scale-steps {
 	flex-direction: row;

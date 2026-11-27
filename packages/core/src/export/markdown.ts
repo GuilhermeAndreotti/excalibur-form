@@ -6,15 +6,15 @@ export interface MarkdownOptions extends Omit<
 	QAListOptions,
 	'includeSections'
 > {
-	/** Começa com o título do form (`# título`). Padrão: `true`. */
+	/** Starts with the form title (`# title`). Default: `true`. */
 	readonly title?: boolean;
-	/** Inclui as `section` como `## título`. Padrão: `true`. */
+	/** Includes `section` fields as `## title`. Default: `true`. */
 	readonly includeSections?: boolean;
 }
 
 /**
- * Escapa texto vindo de usuário pra ele aparecer literal: sem formatação,
- * links ou HTML quando o Markdown for renderizado.
+ * Escapes user text so it shows up literally: no formatting, links or HTML
+ * when the Markdown is rendered.
  */
 export function escapeMarkdown(text: string): string {
 	return text
@@ -23,7 +23,7 @@ export function escapeMarkdown(text: string): string {
 		.replace(/^(\s*\d{1,9})([.)])(?=\s|$)/, '$1\\$2');
 }
 
-/** Linhas de um texto, escapadas, unidas com quebra de linha forçada. */
+/** Lines of a text, escaped, joined with hard line breaks. */
 function block(text: string, indent: string): string {
 	return text
 		.split(/\r\n?|\n/)
@@ -34,15 +34,15 @@ function block(text: string, indent: string): string {
 }
 
 /**
- * Respostas em Markdown, prontas pra email ou relatório:
+ * Answers as Markdown, ready for an email or a report:
  *
  * ```md
- * # Vistoria
+ * # Inspection
  *
- * ## Dados do veículo
+ * ## Vehicle
  *
- * - **Placa:** ABC1D23
- * - **Opcionais:** Ar, Teto solar
+ * - **Plate:** ABC1D23
+ * - **Extras:** A/C, Sunroof
  * ```
  */
 export function toMarkdown(

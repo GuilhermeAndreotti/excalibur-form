@@ -3,6 +3,6 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
 	plugins: [react()],
-	// Usa o código-fonte do core direto (sem precisar rodar o build dele).
+	// Uses the packages' source directly (no need to build them first).
 	resolve: { conditions: ['@excalibur-form/source'] },
 });

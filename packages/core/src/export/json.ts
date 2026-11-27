@@ -2,8 +2,8 @@ import type { AnswerInput, Form } from '../form.ts';
 import { exportEntries } from './display.ts';
 
 /**
- * Respostas indexadas pela `key` de cada campo (padrão: o `id`), na ordem do
- * schema. Os valores são os mesmos de `data` (ids das opções, não labels).
+ * Answers keyed by each field's `key` (default: its `id`), in schema order.
+ * Values are the same as in `data` (option ids, not labels).
  */
 export function toJSON(form: Form, data: AnswerInput): Record<string, unknown> {
 	return Object.fromEntries(

@@ -40,7 +40,7 @@ describe('evaluateCondition', () => {
 		expect(check(condition)).toBe(expected);
 	});
 
-	it('comparações em campo não respondido são falsas (inclusive neq)', () => {
+	it('comparisons on an unanswered field are false (neq included)', () => {
 		expect(check({ field: 'missing', op: 'eq', value: 1 })).toBe(false);
 		expect(check({ field: 'missing', op: 'neq', value: 1 })).toBe(false);
 		expect(check({ field: 'missing', op: 'notIn', value: [1] })).toBe(
@@ -48,7 +48,7 @@ describe('evaluateCondition', () => {
 		);
 	});
 
-	it('combina all / any / not', () => {
+	it('combines all / any / not', () => {
 		expect(
 			check({
 				all: [

@@ -14,10 +14,10 @@ import {
 } from '@excalibur-form/core';
 import { useState, type ComponentType, type ReactNode } from 'react';
 
-/** Props que o componente de entrada de um tipo de campo recebe. */
+/** Props received by a field type's input component. */
 export interface FieldInputProps<F extends FieldBase = FieldBase> {
 	readonly field: F;
-	/** `id` do elemento principal (o `<label>` aponta pra ele). */
+	/** `id` of the main element (the `<label>` points to it). */
 	readonly id: string;
 	readonly value: unknown;
 	readonly onChange: (value: unknown) => void;
@@ -25,9 +25,9 @@ export interface FieldInputProps<F extends FieldBase = FieldBase> {
 	readonly invalid: boolean;
 	readonly required: boolean;
 	readonly disabled: boolean;
-	/** Ids da descrição e dos erros, pra `aria-describedby`. */
+	/** Ids of the description and the errors, for `aria-describedby`. */
 	readonly describedBy: string | undefined;
-	/** Resolve um `LocalizedText` no idioma atual. */
+	/** Resolves a `LocalizedText` in the current language. */
 	readonly t: (text: LocalizedText) => string;
 	readonly labels: DisplayLabels;
 	readonly locale: string | undefined;
@@ -39,7 +39,7 @@ export interface SectionProps {
 	readonly description: string | undefined;
 }
 
-/** Moldura de um campo: label, descrição, o input e os erros. */
+/** Frame around a field: label, description, the input and the errors. */
 export interface FieldWrapperProps {
 	readonly field: FieldBase;
 	readonly id: string;
@@ -50,16 +50,16 @@ export interface FieldWrapperProps {
 	readonly errorId: string;
 	readonly required: boolean;
 	/**
-	 * `true` quando o input tem vários controles (radios, checkboxes): a
-	 * moldura padrão usa `<fieldset>`/`<legend>` em vez de `<label>`.
+	 * `true` when the input has several controls (radios, checkboxes): the
+	 * default frame uses `<fieldset>`/`<legend>` instead of `<label>`.
 	 */
 	readonly group: boolean;
 	readonly children: ReactNode;
 }
 
 /**
- * Componentes por tipo de campo. `section` recebe `SectionProps`; os demais,
- * `FieldInputProps`. Tipos customizados entram pelo nome do tipo.
+ * Components by field type. `section` receives `SectionProps`; the others,
+ * `FieldInputProps`. Custom types go in under their type name.
  */
 export type FieldComponents = {
 	readonly text?: ComponentType<FieldInputProps<TextField>>;
@@ -144,9 +144,9 @@ const toDraft = (value: unknown): string =>
 
 export function NumberInput(props: FieldInputProps<NumberField>): ReactNode {
 	const { field, id, value, onChange, onBlur, disabled, t } = props;
-	// O texto digitado fica local: "1." ou "-" ainda não são números.
+	// The typed text stays local: "1." or "-" are not numbers yet.
 	const [draft, setDraft] = useState(() => toDraft(value));
-	// Valor trocado de fora (reset, rascunho carregado): ajusta o texto.
+	// Value changed from outside (reset, draft loaded): update the text.
 	const [seen, setSeen] = useState(value);
 	if (!Object.is(seen, value)) {
 		setSeen(value);
@@ -174,8 +174,8 @@ export function NumberInput(props: FieldInputProps<NumberField>): ReactNode {
 			onChange={(e) => {
 				const raw = e.target.value;
 				setDraft(raw);
-				// Entrada que o browser não entende vira NaN: a validação
-				// acusa "valor inválido" em vez de tratar como vazio.
+				// Input the browser can't parse becomes NaN, so validation
+				// reports "invalid value" instead of treating it as empty.
 				onChange(
 					raw === ''
 						? e.target.validity.badInput
@@ -211,7 +211,7 @@ function RadioGroup({
 			{options.map((option, index) => (
 				<label key={option.key} className="ef-option">
 					<input
-						// O primeiro recebe o id: é ele que ganha foco em erro.
+						// The first one gets the id: it's the one focused on error.
 						id={index === 0 ? id : `${id}-${option.key}`}
 						type="radio"
 						name={id}
@@ -280,7 +280,7 @@ export function MultiChoiceInput(
 							const next = new Set(selected);
 							if (e.target.checked) next.add(option.id);
 							else next.delete(option.id);
-							// Na ordem das opções, não na ordem dos cliques.
+							// In option order, not click order.
 							onChange(
 								field.options
 									.map((o) => o.id)

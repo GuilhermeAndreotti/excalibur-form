@@ -4,37 +4,37 @@ import { resolveText, type LocalizedText } from '../i18n.ts';
 import { hasOwn } from '../internal/guards.ts';
 import type { FieldBase } from '../schema/types.ts';
 
-/** Textos fixos usados ao exibir respostas. */
+/** Fixed strings used when displaying answers. */
 export interface DisplayLabels {
 	readonly yes: string;
 	readonly no: string;
-	/** Separador de listas (ex.: opções de um `multiChoice`). */
+	/** List separator (e.g. `multiChoice` options). */
 	readonly listSeparator: string;
 }
 
-/** Textos padrão por idioma. Idioma sem entrada aqui cai em `pt`. */
+/** Default strings per language. Languages missing here fall back to `en`. */
 export const DISPLAY_LABELS: Readonly<Record<string, DisplayLabels>> =
 	Object.freeze({
-		pt: Object.freeze({ yes: 'Sim', no: 'Não', listSeparator: ', ' }),
 		en: Object.freeze({ yes: 'Yes', no: 'No', listSeparator: ', ' }),
+		pt: Object.freeze({ yes: 'Sim', no: 'Não', listSeparator: ', ' }),
 		es: Object.freeze({ yes: 'Sí', no: 'No', listSeparator: ', ' }),
 	});
 
-/** Opções comuns a todos os exporters que geram texto legível. */
+/** Options shared by every exporter that produces readable text. */
 export interface DisplayOptions {
-	/** Idioma dos textos do schema (`LocalizedText`). */
+	/** Language for the schema texts (`LocalizedText`). */
 	readonly locale?: string | undefined;
 	readonly fallbackLocale?: string | undefined;
-	/** Sobrescreve os textos de `DISPLAY_LABELS`. */
+	/** Overrides the `DISPLAY_LABELS` strings. */
 	readonly labels?: Partial<DisplayLabels> | undefined;
 }
 
-/** O que `toDisplay` recebe além do valor e do campo. */
+/** What `toDisplay` receives besides the value and the field. */
 export interface DisplayContext {
 	readonly locale: string | undefined;
 	readonly fallbackLocale: string | undefined;
 	readonly labels: DisplayLabels;
-	/** Resolve um `LocalizedText` no idioma do contexto. */
+	/** Resolves a `LocalizedText` in the context language. */
 	readonly text: (text: LocalizedText) => string;
 }
 
@@ -53,7 +53,7 @@ export function createDisplayContext(
 	const labels: DisplayLabels = {
 		...(baseLabels(locale) ??
 			baseLabels(fallbackLocale) ??
-			(DISPLAY_LABELS['pt'] as DisplayLabels)),
+			(DISPLAY_LABELS['en'] as DisplayLabels)),
 		...options.labels,
 	};
 	return {
@@ -64,7 +64,7 @@ export function createDisplayContext(
 	};
 }
 
-/** Número formatado no idioma do contexto; sem idioma, `String(value)`. */
+/** Number formatted for the context language; without one, `String(value)`. */
 export function formatNumber(value: number, context: DisplayContext): string {
 	if (context.locale === undefined) return String(value);
 	try {
@@ -72,12 +72,12 @@ export function formatNumber(value: number, context: DisplayContext): string {
 			maximumFractionDigits: 20,
 		}).format(value);
 	} catch {
-		// Tag de idioma inválida.
+		// Invalid language tag.
 		return String(value);
 	}
 }
 
-/** Conversão genérica, pra tipos customizados sem `toDisplay`. */
+/** Generic conversion, for custom types without `toDisplay`. */
 function genericDisplay(value: unknown, context: DisplayContext): string {
 	if (typeof value === 'string') return value;
 	if (typeof value === 'number') return formatNumber(value, context);
@@ -96,9 +96,9 @@ function genericDisplay(value: unknown, context: DisplayContext): string {
 export interface ExportEntry {
 	readonly field: FieldBase;
 	readonly definition: FieldTypeDefinition;
-	/** Nome do campo nas exportações (`key` ou `id`). */
+	/** Field name in exports (`key` or `id`). */
 	readonly key: string;
-	/** `true` se a resposta está presente e não vazia. */
+	/** `true` if the answer is present and not empty. */
 	readonly answered: boolean;
 	readonly value: unknown;
 }
@@ -108,8 +108,8 @@ export function exportKey(field: FieldBase): string {
 }
 
 /**
- * Campos com resposta, na ordem do schema, só os visíveis pras respostas
- * dadas. Passe `result.data` de `form.validate`: os exporters não validam.
+ * Answerable fields in schema order, only those visible for the given
+ * answers. Pass `result.data` from `form.validate`: exporters don't validate.
  */
 export function exportEntries(form: Form, data: AnswerInput): ExportEntry[] {
 	const visible = form.visibleFieldIds(data);
@@ -129,7 +129,7 @@ export function exportEntries(form: Form, data: AnswerInput): ExportEntry[] {
 	return entries;
 }
 
-/** Texto legível de uma resposta (`''` se vazia). */
+/** Readable text for an answer (`''` if empty). */
 export function displayAnswer(
 	entry: Pick<ExportEntry, 'field' | 'definition' | 'answered' | 'value'>,
 	context: DisplayContext,

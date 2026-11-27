@@ -12,152 +12,160 @@ import { toJSON } from './json.ts';
 import { escapeMarkdown, toMarkdown } from './markdown.ts';
 import { toQAList } from './qa-list.ts';
 
-const vistoria = defineForm({
-	id: 'vistoria',
+const inspection = defineForm({
+	id: 'inspection',
 	version: 1,
-	title: { pt: 'Vistoria', en: 'Inspection' },
+	title: { en: 'Inspection', pt: 'Vistoria' },
 	fields: [
-		{ id: 'intro', type: 'section', label: 'Dados do veículo' },
+		{ id: 'intro', type: 'section', label: 'Vehicle' },
 		{
-			id: 'placa',
-			key: 'plate',
+			id: 'plate',
+			key: 'plate_number',
 			type: 'text',
-			label: { pt: 'Placa', en: 'Plate' },
+			label: { en: 'Plate', pt: 'Placa' },
 			required: true,
 		},
 		{
-			id: 'opcionais',
+			id: 'extras',
 			type: 'multiChoice',
-			label: 'Opcionais',
+			label: 'Extras',
 			options: [
-				{ id: 'ar', label: { pt: 'Ar', en: 'A/C' } },
-				{ id: 'teto', label: 'Teto solar' },
+				{ id: 'ac', label: { en: 'A/C', pt: 'Ar' } },
+				{ id: 'sunroof', label: 'Sunroof' },
 			],
 		},
-		{ id: 'tem_multa', type: 'boolean', label: 'Possui multas?' },
+		{ id: 'has_fines', type: 'boolean', label: 'Any fines?' },
 		{
-			id: 'valor_multas',
+			id: 'fines_amount',
 			type: 'number',
-			label: 'Valor das multas',
-			showIf: { field: 'tem_multa', op: 'eq', value: true },
+			label: 'Fines amount',
+			showIf: { field: 'has_fines', op: 'eq', value: true },
 		},
-		{ id: 'extra', type: 'section', label: 'Extras' },
+		{ id: 'more', type: 'section', label: 'More' },
 		{
-			id: 'combustivel',
+			id: 'fuel',
 			type: 'choice',
-			label: 'Combustível',
+			label: 'Fuel',
 			options: [
 				{ id: 'flex', label: 'Flex' },
 				{ id: 'diesel', label: 'Diesel' },
 			],
 		},
-		{ id: 'obs', type: 'longText', label: 'Observações' },
+		{ id: 'notes', type: 'longText', label: 'Notes' },
 	],
 });
 
 const answers = {
-	placa: 'ABC1D23',
-	opcionais: ['teto', 'ar'],
-	tem_multa: true,
-	valor_multas: 1234.5,
+	plate: 'ABC1D23',
+	extras: ['sunroof', 'ac'],
+	has_fines: true,
+	fines_amount: 1234.5,
 };
 
+const answerTexts = (items: ReturnType<typeof toQAList>) =>
+	items.map((item) => (item.kind === 'answer' ? item.answer : ''));
+
 describe('toJSON', () => {
-	it('usa a key, segue a ordem do schema e omite vazios', () => {
-		const json = toJSON(vistoria, {
-			valor_multas: 10,
-			placa: 'X',
-			tem_multa: true,
-			obs: '   ',
+	it('uses the key, follows schema order and skips empty answers', () => {
+		const json = toJSON(inspection, {
+			fines_amount: 10,
+			plate: 'X',
+			has_fines: true,
+			notes: '   ',
 		});
-		expect(json).toEqual({ plate: 'X', tem_multa: true, valor_multas: 10 });
+		expect(json).toEqual({
+			plate_number: 'X',
+			has_fines: true,
+			fines_amount: 10,
+		});
 		expect(Object.keys(json)).toEqual([
-			'plate',
-			'tem_multa',
-			'valor_multas',
+			'plate_number',
+			'has_fines',
+			'fines_amount',
 		]);
 	});
 
-	it('descarta campos escondidos e chaves desconhecidas', () => {
+	it('drops hidden fields and unknown keys', () => {
 		expect(
-			toJSON(vistoria, {
-				placa: 'X',
-				tem_multa: false,
-				valor_multas: 99,
+			toJSON(inspection, {
+				plate: 'X',
+				has_fines: false,
+				fines_amount: 99,
 				hack: 1,
 			}),
-		).toEqual({ plate: 'X', tem_multa: false });
+		).toEqual({ plate_number: 'X', has_fines: false });
 	});
 });
 
 describe('toEntries / toFormData', () => {
-	it('uma entrada por item de lista, valores como string', () => {
-		expect(toEntries(vistoria, answers)).toEqual([
-			['plate', 'ABC1D23'],
-			['opcionais', 'teto'],
-			['opcionais', 'ar'],
-			['tem_multa', 'true'],
-			['valor_multas', '1234.5'],
+	it('one entry per list item, values as strings', () => {
+		expect(toEntries(inspection, answers)).toEqual([
+			['plate_number', 'ABC1D23'],
+			['extras', 'sunroof'],
+			['extras', 'ac'],
+			['has_fines', 'true'],
+			['fines_amount', '1234.5'],
 		]);
 	});
 
-	it('monta um FormData', () => {
-		const formData = toFormData(vistoria, answers) as unknown as {
+	it('builds a FormData', () => {
+		const formData = toFormData(inspection, answers) as unknown as {
 			getAll(name: string): string[];
 		};
-		expect(formData.getAll('opcionais')).toEqual(['teto', 'ar']);
-		expect(formData.getAll('plate')).toEqual(['ABC1D23']);
+		expect(formData.getAll('extras')).toEqual(['sunroof', 'ac']);
+		expect(formData.getAll('plate_number')).toEqual(['ABC1D23']);
 	});
 });
 
 describe('toQAList', () => {
-	it('resolve labels, opções e booleanos', () => {
-		expect(toQAList(vistoria, answers)).toEqual([
+	it('resolves labels, options and booleans (English by default)', () => {
+		expect(toQAList(inspection, answers)).toEqual([
 			{
 				kind: 'answer',
-				fieldId: 'placa',
-				key: 'plate',
+				fieldId: 'plate',
+				key: 'plate_number',
 				type: 'text',
-				question: 'Placa',
+				question: 'Plate',
 				answer: 'ABC1D23',
 				value: 'ABC1D23',
 				answered: true,
 			},
 			expect.objectContaining({
-				question: 'Opcionais',
-				answer: 'Teto solar, Ar',
-				value: ['teto', 'ar'],
+				question: 'Extras',
+				answer: 'Sunroof, A/C',
+				value: ['sunroof', 'ac'],
 			}),
-			expect.objectContaining({
-				question: 'Possui multas?',
-				answer: 'Sim',
-			}),
+			expect.objectContaining({ question: 'Any fines?', answer: 'Yes' }),
 			expect.objectContaining({ answer: '1234.5' }),
 		]);
 	});
 
-	it('usa o idioma pedido (com região) pra textos e números', () => {
-		const items = toQAList(vistoria, answers, { locale: 'en-US' });
-		expect(items.map((i) => (i.kind === 'answer' ? i.answer : ''))).toEqual(
-			['ABC1D23', 'Teto solar, A/C', 'Yes', '1,234.5'],
-		);
-		const pt = toQAList(vistoria, answers, { locale: 'pt-BR' });
-		expect(pt.at(-1)).toMatchObject({ answer: '1.234,5' });
+	it('uses the requested language (with region) for texts and numbers', () => {
+		const pt = toQAList(inspection, answers, { locale: 'pt-BR' });
+		expect(pt[0]).toMatchObject({ question: 'Placa' });
+		expect(answerTexts(pt)).toEqual([
+			'ABC1D23',
+			'Sunroof, Ar',
+			'Sim',
+			'1.234,5',
+		]);
+		const en = toQAList(inspection, answers, { locale: 'en-US' });
+		expect(answerTexts(en).at(-1)).toBe('1,234.5');
 	});
 
-	it('aceita textos próprios', () => {
+	it('accepts custom labels', () => {
 		const items = toQAList(
-			vistoria,
-			{ placa: 'X', tem_multa: false },
-			{ labels: { no: 'Negativo' } },
+			inspection,
+			{ plate: 'X', has_fines: false },
+			{ labels: { no: 'Nope' } },
 		);
-		expect(items[1]).toMatchObject({ answer: 'Negativo' });
+		expect(items[1]).toMatchObject({ answer: 'Nope' });
 	});
 
-	it('inclui não respondidos e seções quando pedido', () => {
+	it('includes unanswered fields and sections when asked', () => {
 		const items = toQAList(
-			vistoria,
-			{ placa: 'X', tem_multa: false },
+			inspection,
+			{ plate: 'X', has_fines: false },
 			{
 				includeUnanswered: true,
 				includeSections: true,
@@ -166,12 +174,12 @@ describe('toQAList', () => {
 		);
 		expect(items.map((i) => `${i.kind}:${i.fieldId}`)).toEqual([
 			'section:intro',
-			'answer:placa',
-			'answer:opcionais',
-			'answer:tem_multa',
-			'section:extra',
-			'answer:combustivel',
-			'answer:obs',
+			'answer:plate',
+			'answer:extras',
+			'answer:has_fines',
+			'section:more',
+			'answer:fuel',
+			'answer:notes',
 		]);
 		expect(items[2]).toMatchObject({
 			answer: '-',
@@ -180,31 +188,39 @@ describe('toQAList', () => {
 		});
 	});
 
-	it('omite seções sem respostas depois delas', () => {
+	it('skips sections with no answers after them', () => {
 		const items = toQAList(
-			vistoria,
-			{ placa: 'X' },
+			inspection,
+			{ plate: 'X' },
 			{ includeSections: true },
 		);
-		expect(items.map((i) => i.fieldId)).toEqual(['intro', 'placa']);
+		expect(items.map((i) => i.fieldId)).toEqual(['intro', 'plate']);
 	});
 });
 
 describe('toCSV', () => {
-	it('uma linha por submissão, cabeçalho com labels', () => {
-		const csv = toCSV(vistoria, [
+	it('one row per submission, header with labels', () => {
+		const csv = toCSV(inspection, [
 			answers,
-			{ placa: 'Z, "aspas"', tem_multa: false, obs: 'linha 1\nlinha 2' },
+			{ plate: 'Z, "quoted"', has_fines: false, notes: 'line 1\nline 2' },
 		]);
 		expect(csv.split('\r\n')).toEqual([
-			'Placa,Opcionais,Possui multas?,Valor das multas,Combustível,Observações',
-			'ABC1D23,"Teto solar, Ar",Sim,1234.5,,',
-			'"Z, ""aspas""",,Não,,,"linha 1\nlinha 2"',
+			'Plate,Extras,Any fines?,Fines amount,Fuel,Notes',
+			'ABC1D23,"Sunroof, A/C",Yes,1234.5,,',
+			'"Z, ""quoted""",,No,,,"line 1\nline 2"',
 		]);
 	});
 
-	it('modo raw, cabeçalho por key, delimitador e BOM', () => {
-		const csv = toCSV(vistoria, [answers], {
+	it('pt-BR display values', () => {
+		const csv = toCSV(inspection, [answers], {
+			locale: 'pt-BR',
+			delimiter: ';',
+		});
+		expect(csv.split('\r\n')[1]).toBe('ABC1D23;Sunroof, Ar;Sim;1.234,5;;');
+	});
+
+	it('raw mode, key header, delimiter and BOM', () => {
+		const csv = toCSV(inspection, [answers], {
 			header: 'key',
 			values: 'raw',
 			delimiter: ';',
@@ -212,12 +228,12 @@ describe('toCSV', () => {
 			bom: true,
 		});
 		expect(csv).toBe(
-			'﻿plate;opcionais;tem_multa;valor_multas;combustivel;obs\n' +
-				'ABC1D23;teto, ar;true;1234.5;;',
+			'﻿plate_number;extras;has_fines;fines_amount;fuel;notes\n' +
+				'ABC1D23;sunroof, ac;true;1234.5;;',
 		);
 	});
 
-	it('neutraliza fórmulas em textos, mas não em números', () => {
+	it('neutralizes formulas in text, but not in numbers', () => {
 		const form = defineForm({
 			id: 'f',
 			version: 1,
@@ -236,62 +252,62 @@ describe('toCSV', () => {
 		);
 	});
 
-	it('sem submissões, só o cabeçalho', () => {
-		expect(toCSV(vistoria, [], { header: 'key' })).toBe(
-			'plate,opcionais,tem_multa,valor_multas,combustivel,obs',
+	it('with no submissions, only the header', () => {
+		expect(toCSV(inspection, [], { header: 'key' })).toBe(
+			'plate_number,extras,has_fines,fines_amount,fuel,notes',
 		);
 	});
 });
 
 describe('toMarkdown', () => {
-	it('título, seções e lista', () => {
-		expect(toMarkdown(vistoria, answers)).toBe(
+	it('title, sections and list', () => {
+		expect(toMarkdown(inspection, answers)).toBe(
 			[
-				'# Vistoria',
+				'# Inspection',
 				'',
-				'## Dados do veículo',
+				'## Vehicle',
 				'',
-				'- **Placa:** ABC1D23',
-				'- **Opcionais:** Teto solar, Ar',
-				'- **Possui multas?:** Sim',
-				'- **Valor das multas:** 1234.5',
+				'- **Plate:** ABC1D23',
+				'- **Extras:** Sunroof, A/C',
+				'- **Any fines?:** Yes',
+				'- **Fines amount:** 1234.5',
 				'',
 			].join('\n'),
 		);
 	});
 
-	it('escapa texto de usuário e preserva quebras de linha', () => {
+	it('escapes user text and keeps line breaks', () => {
 		const md = toMarkdown(
-			vistoria,
+			inspection,
 			{
-				placa: '**negrito** <img src=x onerror=alert(1)>',
-				obs: 'linha 1\n\n- não é lista\n[link](http://x)',
+				plate: '**bold** <img src=x onerror=alert(1)>',
+				notes: 'line 1\n\n- not a list\n[link](http://x)',
 			},
 			{ title: false, includeSections: false },
 		);
 		expect(md).toBe(
 			[
-				'- **Placa:** \\*\\*negrito\\*\\* \\<img src=x onerror=alert(1)\\>',
-				'- **Observações:** linha 1\\',
-				'  \\- não é lista\\',
+				'- **Plate:** \\*\\*bold\\*\\* \\<img src=x onerror=alert(1)\\>',
+				'- **Notes:** line 1\\',
+				'  \\- not a list\\',
 				'  \\[link\\](http://x)',
 				'',
 			].join('\n'),
 		);
 	});
 
-	it('mostra não respondidos com travessão', () => {
+	it('shows unanswered fields with a dash, in the requested language', () => {
 		const md = toMarkdown(
-			vistoria,
-			{ placa: 'X' },
-			{ includeUnanswered: true, locale: 'en' },
+			inspection,
+			{ plate: 'X' },
+			{ includeUnanswered: true, locale: 'pt-BR' },
 		);
-		expect(md).toContain('# Inspection');
-		expect(md).toContain('- **Plate:** X');
-		expect(md).toContain('- **Possui multas?:** —');
+		expect(md).toContain('# Vistoria');
+		expect(md).toContain('- **Placa:** X');
+		expect(md).toContain('- **Any fines?:** —');
 	});
 
-	it('form sem respostas e sem título gera string vazia', () => {
+	it('a form with no answers and no title gives an empty string', () => {
 		const form = defineForm({
 			id: 'f',
 			version: 1,
@@ -302,12 +318,12 @@ describe('toMarkdown', () => {
 
 	it('escapeMarkdown', () => {
 		expect(escapeMarkdown('1. item')).toBe('1\\. item');
-		expect(escapeMarkdown('# título')).toBe('\\# título');
+		expect(escapeMarkdown('# title')).toBe('\\# title');
 		expect(escapeMarkdown('a & b | c')).toBe('a \\& b \\| c');
 	});
 });
 
-describe('tipos customizados', () => {
+describe('custom types', () => {
 	interface CpfField extends FieldBase {
 		readonly type: 'cpf';
 	}
@@ -338,51 +354,52 @@ describe('tipos customizados', () => {
 			version: 1,
 			fields: [
 				{ id: 'doc', type: 'cpf', label: 'CPF' },
-				{ id: 'local', type: 'geo', label: 'Local' },
+				{ id: 'location', type: 'geo', label: 'Location' },
 			],
 		},
 		{ registry: createRegistry([...builtinFieldTypes, cpf, geo]) },
 	);
-	if (!parsed.ok) throw new Error('schema inválido');
+	if (!parsed.ok) throw new Error('invalid schema');
 	const form = parsed.value;
-	const answer = (value: unknown) =>
-		toQAList(form, { local: value })[0]?.kind === 'answer'
-			? (toQAList(form, { local: value })[0] as { answer: string }).answer
-			: undefined;
+	const answer = (value: unknown) => {
+		const item = toQAList(form, { location: value })[0];
+		return item?.kind === 'answer' ? item.answer : undefined;
+	};
 
-	it('usa o toDisplay do tipo', () => {
+	it("uses the type's toDisplay", () => {
 		expect(toQAList(form, { doc: '12345678901' })[0]).toMatchObject({
 			answer: '123.***.***-01',
 		});
 	});
 
-	it('sem toDisplay, converte de forma genérica', () => {
-		expect(answer('texto')).toBe('texto');
+	it('without toDisplay, converts generically', () => {
+		expect(answer('text')).toBe('text');
 		expect(answer(3)).toBe('3');
-		expect(answer(true)).toBe('Sim');
-		expect(answer([1, false])).toBe('1, Não');
+		expect(answer(true)).toBe('Yes');
+		expect(answer([1, false])).toBe('1, No');
 		expect(answer({ lat: 1 })).toBe('{"lat":1}');
 		expect(answer(null)).toBe('');
-		expect(toEntries(form, { local: { lat: 1 } })).toEqual([
-			['local', '{"lat":1}'],
+		expect(toEntries(form, { location: { lat: 1 } })).toEqual([
+			['location', '{"lat":1}'],
 		]);
-		expect(toCSV(form, [{ local: { lat: 1 } }], { values: 'raw' })).toBe(
-			'CPF,Local\r\n,"{""lat"":1}"',
+		expect(toCSV(form, [{ location: { lat: 1 } }], { values: 'raw' })).toBe(
+			'CPF,Location\r\n,"{""lat"":1}"',
 		);
 	});
 });
 
 describe('display', () => {
-	it('idioma desconhecido cai no fallback e depois em pt', () => {
-		expect(createDisplayContext({ locale: 'fr' }).labels.yes).toBe('Sim');
+	it('unknown language falls back to fallbackLocale, then English', () => {
+		expect(createDisplayContext({ locale: 'fr' }).labels.yes).toBe('Yes');
 		expect(
-			createDisplayContext({ locale: 'fr', fallbackLocale: 'en' }).labels
+			createDisplayContext({ locale: 'fr', fallbackLocale: 'pt' }).labels
 				.yes,
-		).toBe('Yes');
-		expect(createDisplayContext().labels.no).toBe('Não');
+		).toBe('Sim');
+		expect(createDisplayContext().labels.no).toBe('No');
+		expect(createDisplayContext({ locale: 'pt_BR' }).labels.no).toBe('Não');
 	});
 
-	it('formatNumber tolera tag de idioma inválida', () => {
+	it('formatNumber tolerates an invalid language tag', () => {
 		expect(formatNumber(1.5, createDisplayContext({ locale: '!!' }))).toBe(
 			'1.5',
 		);

@@ -8,22 +8,22 @@ import {
 } from './display.ts';
 
 export interface CSVOptions extends DisplayOptions {
-	/** Cabeçalho com o label do campo ou com a `key`. Padrão: `'label'`. */
+	/** Header with the field label or its `key`. Default: `'label'`. */
 	readonly header?: 'label' | 'key';
 	/**
-	 * `'display'`: texto legível (labels das opções, "Sim"/"Não").
-	 * `'raw'`: valores como em `data` (ids, `true`/`false`). Padrão: `'display'`.
+	 * `'display'`: readable text (option labels, "Yes"/"No").
+	 * `'raw'`: values as in `data` (ids, `true`/`false`). Default: `'display'`.
 	 */
 	readonly values?: 'display' | 'raw';
-	/** Padrão: `','`. Use `';'` pro Excel em português. */
+	/** Default: `','`. Use `';'` for Excel in locales with a decimal comma. */
 	readonly delimiter?: string;
-	/** Padrão: `'\r\n'` (RFC 4180). */
+	/** Default: `'\r\n'` (RFC 4180). */
 	readonly newline?: string;
-	/** Começa com BOM UTF-8 (o Excel precisa pra acentos). Padrão: `false`. */
+	/** Starts with a UTF-8 BOM (Excel needs it for accents). Default: `false`. */
 	readonly bom?: boolean;
 	/**
-	 * Prefixa com `'` células de texto que começam com `=`, `+`, `-`, `@`,
-	 * tab ou CR, pra planilhas não executarem como fórmula. Padrão: `true`.
+	 * Prefixes text cells starting with `=`, `+`, `-`, `@`, tab or CR with
+	 * `'`, so spreadsheets don't run them as formulas. Default: `true`.
 	 */
 	readonly escapeFormulas?: boolean;
 }
@@ -49,8 +49,8 @@ function rawCell(value: unknown, separator: string): string {
 }
 
 /**
- * Várias submissões do mesmo form viram linhas de um CSV, com uma coluna por
- * campo (sem `section`). Campo escondido ou sem resposta vira célula vazia.
+ * Turns several submissions of the same form into CSV rows, one column per
+ * field (no `section`). Hidden or unanswered fields become empty cells.
  */
 export function toCSV(
 	form: Form,

@@ -2,4 +2,4 @@
 '@excalibur-form/core': minor
 ---
 
-Exporters: `toJSON`, `toQAList`, `toMarkdown`, `toCSV`, `toFormData` e `toEntries`. Tipos de campo ganham `toDisplay` opcional, `Form` expõe `registry` e `resolveText` passa a cair do idioma com região (`pt-BR`) pro idioma base (`pt`).
+Exporters: `toJSON`, `toQAList`, `toMarkdown`, `toCSV`, `toFormData` and `toEntries`. Field types get an optional `toDisplay`, `Form` exposes `registry`, and `resolveText` now falls back from a regional locale (`pt-BR`) to its base language (`pt`).

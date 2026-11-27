@@ -8,33 +8,33 @@ import type {
 } from '@excalibur-form/core';
 import { useCallback, useMemo, useState } from 'react';
 
-/** Quando os erros de um campo passam a aparecer. */
+/** When a field's errors start showing. */
 export type ShowErrors =
-	/** Depois que o campo perde o foco, ou depois de tentar enviar. */
+	/** After the field loses focus, or after a submit attempt. */
 	| 'touched'
-	/** Só depois de tentar enviar. */
+	/** Only after a submit attempt. */
 	| 'submit'
-	/** Sempre, desde o início. */
+	/** Always, from the start. */
 	| 'always';
 
 export interface UseExcaliburFormOptions<S extends FormSchema = FormSchema> {
-	/** Respostas iniciais (ex.: um rascunho salvo). */
+	/** Initial answers (e.g. a saved draft). */
 	readonly initialAnswers?: AnswerInput;
-	/** Chamado com os dados validados. Pode ser assíncrono. */
+	/** Called with the validated data. Can be async. */
 	readonly onSubmit?: (data: InferAnswers<S>) => void | Promise<void>;
-	/** Chamado quando o envio falha na validação. */
+	/** Called when a submit fails validation. */
 	readonly onInvalid?: (errors: readonly ValidationError[]) => void;
-	/** Padrão: `'touched'`. */
+	/** Default: `'touched'`. */
 	readonly showErrors?: ShowErrors;
 }
 
-/** Tudo que um componente precisa pra renderizar um campo. */
+/** Everything a component needs to render a field. */
 export interface FieldState<F = FormSchema['fields'][number]> {
 	readonly field: F;
 	readonly visible: boolean;
 	readonly value: unknown;
 	readonly touched: boolean;
-	/** Erros que devem aparecer agora (respeita `showErrors`). */
+	/** Errors that should show right now (honors `showErrors`). */
 	readonly errors: readonly ValidationError[];
 	readonly invalid: boolean;
 	readonly onChange: (value: unknown) => void;
@@ -43,29 +43,29 @@ export interface FieldState<F = FormSchema['fields'][number]> {
 
 export interface ExcaliburFormController<S extends FormSchema = FormSchema> {
 	readonly form: Form<S>;
-	/** Respostas cruas, inclusive de campos escondidos agora. */
+	/** Raw answers, including those of fields hidden right now. */
 	readonly answers: AnswerInput;
 	readonly setAnswer: (fieldId: string, value: unknown) => void;
 	readonly setAnswers: (
 		next: AnswerInput | ((previous: AnswerInput) => AnswerInput),
 	) => void;
-	/** Volta pro estado inicial (ou pras respostas dadas) e limpa erros. */
+	/** Goes back to the initial state (or the given answers) and clears errors. */
 	readonly reset: (answers?: AnswerInput) => void;
 	readonly visibleFieldIds: ReadonlySet<string>;
-	/** Resultado de `form.validate(answers)`, sempre atualizado. */
+	/** Result of `form.validate(answers)`, always up to date. */
 	readonly result: ValidationResult<InferAnswers<S>>;
-	/** Erros visíveis agora, por campo (respeita `showErrors`). */
+	/** Errors visible right now, by field (honors `showErrors`). */
 	readonly errors: ReadonlyMap<string, readonly ValidationError[]>;
 	readonly touched: ReadonlySet<string>;
 	readonly touch: (fieldId: string) => void;
-	/** Quantas vezes tentou enviar. */
+	/** How many submit attempts so far. */
 	readonly submitCount: number;
 	readonly isSubmitting: boolean;
-	/** Valida e chama `onSubmit` / `onInvalid`. Serve como `onSubmit` do `<form>`. */
+	/** Validates and calls `onSubmit` / `onInvalid`. Works as the `<form>` `onSubmit`. */
 	readonly handleSubmit: (event?: {
 		preventDefault(): void;
 	}) => Promise<void>;
-	/** Estado de um campo pelo `id`. */
+	/** State of a field by `id`. */
 	readonly fieldState: (fieldId: string) => FieldState<S['fields'][number]>;
 }
 
@@ -73,8 +73,8 @@ const EMPTY: AnswerInput = Object.freeze({});
 const NO_ERRORS: readonly ValidationError[] = Object.freeze([]);
 
 /**
- * Estado de um form, sem renderizar nada. Passe um `Form` estável (de
- * `defineForm`, ou de `parseForm` dentro de um `useMemo`).
+ * Form state, without rendering anything. Pass a stable `Form` (from
+ * `defineForm`, or from `parseForm` inside a `useMemo`).
  */
 export function useExcaliburForm<S extends FormSchema>(
 	form: Form<S>,
@@ -124,7 +124,7 @@ export function useExcaliburForm<S extends FormSchema>(
 	const setAnswer = useCallback((fieldId: string, value: unknown) => {
 		setAnswersState((previous) => {
 			if (Object.is(previous[fieldId], value)) return previous;
-			// defineProperty: um id como "constructor" vira chave própria.
+			// defineProperty: an id like "constructor" becomes an own key.
 			const next: Record<string, unknown> = { ...previous };
 			Object.defineProperty(next, fieldId, {
 				value,

@@ -53,7 +53,7 @@ function checkText(
 	return accept(value);
 }
 
-/** Checagem linear (sem regex com backtracking). */
+/** Linear check (no backtracking regex). */
 export function isEmail(value: string): boolean {
 	if (/\s/.test(value)) return false;
 	const at = value.indexOf('@');

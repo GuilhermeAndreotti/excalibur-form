@@ -10,16 +10,16 @@ import { FormSchemaError } from './schema/issues.ts';
 import type { FieldBase } from './schema/types.ts';
 import { accept, reject } from './validation/errors.ts';
 
-const vistoria = defineForm({
-	id: 'vistoria',
+const inspection = defineForm({
+	id: 'inspection',
 	version: 1,
 	fields: [
-		{ id: 'intro', type: 'section', label: 'Dados do veículo' },
-		{ id: 'placa', type: 'text', label: 'Placa', required: true },
+		{ id: 'intro', type: 'section', label: 'Vehicle' },
+		{ id: 'plate', type: 'text', label: 'Plate', required: true },
 		{
-			id: 'combustivel',
+			id: 'fuel',
 			type: 'choice',
-			label: 'Combustível',
+			label: 'Fuel',
 			required: true,
 			options: [
 				{ id: 'flex', label: 'Flex' },
@@ -27,101 +27,101 @@ const vistoria = defineForm({
 			],
 		},
 		{
-			id: 'opcionais',
+			id: 'extras',
 			type: 'multiChoice',
-			label: 'Opcionais',
+			label: 'Extras',
 			options: [
-				{ id: 'ar', label: 'Ar' },
-				{ id: 'teto', label: 'Teto solar' },
+				{ id: 'ac', label: 'A/C' },
+				{ id: 'sunroof', label: 'Sunroof' },
 			],
 		},
 		{
-			id: 'tem_multa',
+			id: 'has_fines',
 			type: 'boolean',
-			label: 'Possui multas?',
+			label: 'Any fines?',
 			required: true,
 		},
 		{
-			id: 'valor_multas',
+			id: 'fines_amount',
 			type: 'number',
-			label: 'Valor das multas',
+			label: 'Fines amount',
 			required: true,
 			min: 0,
-			showIf: { field: 'tem_multa', op: 'eq', value: true },
+			showIf: { field: 'has_fines', op: 'eq', value: true },
 		},
-		{ id: 'nota', type: 'scale', label: 'Estado geral', max: 10 },
+		{ id: 'rating', type: 'scale', label: 'Overall condition', max: 10 },
 	],
 });
 
 describe('defineForm', () => {
-	it('infere o tipo das respostas', () => {
-		type Answers = InferAnswers<typeof vistoria.schema>;
+	it('infers the answer types', () => {
+		type Answers = InferAnswers<typeof inspection.schema>;
 		expectTypeOf<Answers>().toEqualTypeOf<{
-			placa: string;
-			combustivel: 'flex' | 'diesel';
-			tem_multa: boolean;
-			opcionais?: ('ar' | 'teto')[];
-			valor_multas?: number;
-			nota?: number;
+			plate: string;
+			fuel: 'flex' | 'diesel';
+			has_fines: boolean;
+			extras?: ('ac' | 'sunroof')[];
+			fines_amount?: number;
+			rating?: number;
 		}>();
-		const result = vistoria.validate({});
+		const result = inspection.validate({});
 		if (result.ok) expectTypeOf(result.data).toEqualTypeOf<Answers>();
 	});
 
-	it('valida, descarta chaves desconhecidas e campos escondidos', () => {
-		const result = vistoria.validate({
-			placa: 'ABC1D23',
-			combustivel: 'flex',
-			tem_multa: false,
-			valor_multas: 'ignorado porque está escondido',
-			opcionais: ['teto'],
+	it('validates and drops unknown keys and hidden fields', () => {
+		const result = inspection.validate({
+			plate: 'ABC1D23',
+			fuel: 'flex',
+			has_fines: false,
+			fines_amount: 'ignored because it is hidden',
+			extras: ['sunroof'],
 			hack: true,
 		});
 		expect(result).toEqual({
 			ok: true,
 			data: {
-				placa: 'ABC1D23',
-				combustivel: 'flex',
-				tem_multa: false,
-				opcionais: ['teto'],
+				plate: 'ABC1D23',
+				fuel: 'flex',
+				has_fines: false,
+				extras: ['sunroof'],
 			},
 		});
 	});
 
-	it('valida campo condicional quando ele aparece', () => {
-		const result = vistoria.validate({
-			placa: 'X',
-			combustivel: 'diesel',
-			tem_multa: true,
+	it('validates a conditional field once it shows up', () => {
+		const result = inspection.validate({
+			plate: 'X',
+			fuel: 'diesel',
+			has_fines: true,
 		});
 		expect(result).toEqual({
 			ok: false,
-			errors: [{ fieldId: 'valor_multas', code: 'required' }],
+			errors: [{ fieldId: 'fines_amount', code: 'required' }],
 		});
 	});
 
-	it('junta todos os erros', () => {
-		const result = vistoria.validate({ combustivel: 'gasolina', nota: 11 });
+	it('collects every error', () => {
+		const result = inspection.validate({ fuel: 'gasoline', rating: 11 });
 		expect(result.ok).toBe(false);
 		if (result.ok) return;
 		expect(result.errors.map((e) => `${e.fieldId}:${e.code}`)).toEqual([
-			'placa:required',
-			'combustivel:invalid_option',
-			'tem_multa:required',
-			'nota:too_big',
+			'plate:required',
+			'fuel:invalid_option',
+			'has_fines:required',
+			'rating:too_big',
 		]);
 	});
 
-	it('rejeita respostas que não são objeto', () => {
+	it('rejects answers that are not an object', () => {
 		for (const input of [null, [], 'x']) {
-			expect(vistoria.validate(input)).toEqual({
+			expect(inspection.validate(input)).toEqual({
 				ok: false,
 				errors: [{ fieldId: null, code: 'invalid_type' }],
 			});
 		}
 	});
 
-	it('ignora propriedades herdadas do prototype', () => {
+	it('ignores properties inherited from the prototype', () => {
 		const form = defineForm({
 			id: 'f',
 			version: 1,
@@ -135,7 +135,7 @@ describe('defineForm', () => {
 		});
 	});
 
-	it('lança FormSchemaError com schema inválido', () => {
+	it('throws FormSchemaError for an invalid schema', () => {
 		expect(() =>
 			defineForm({
 				id: 'f',
@@ -145,19 +145,19 @@ describe('defineForm', () => {
 		).toThrow(FormSchemaError);
 	});
 
-	it('expõe helpers', () => {
-		expect(vistoria.field('placa')?.label).toBe('Placa');
-		expect(vistoria.field('nada')).toBeUndefined();
-		expect(vistoria.answerableFields.map((f) => f.id)).not.toContain(
+	it('exposes helpers', () => {
+		expect(inspection.field('plate')?.label).toBe('Plate');
+		expect(inspection.field('nothing')).toBeUndefined();
+		expect(inspection.answerableFields.map((f) => f.id)).not.toContain(
 			'intro',
 		);
-		expect(vistoria.limits.maxFields).toBe(500);
-		expect(Object.isFrozen(vistoria.schema)).toBe(true);
+		expect(inspection.limits.maxFields).toBe(500);
+		expect(Object.isFrozen(inspection.schema)).toBe(true);
 	});
 });
 
 describe('visibleFieldIds', () => {
-	it('atualiza com as respostas e propaga em cascata', () => {
+	it('updates with the answers and cascades', () => {
 		const form = defineForm({
 			id: 'f',
 			version: 1,
@@ -184,13 +184,13 @@ describe('visibleFieldIds', () => {
 			],
 		});
 		expect([...form.visibleFieldIds({})]).toEqual(['a', 'd']);
-		expect([...form.visibleFieldIds({ a: true, b: 'oi' })]).toEqual([
+		expect([...form.visibleFieldIds({ a: true, b: 'hi' })]).toEqual([
 			'a',
 			'b',
 			'c',
 		]);
-		// b escondido → resposta de b não conta → c some também
-		expect([...form.visibleFieldIds({ a: false, b: 'oi' })]).toEqual(['a']);
+		// b hidden → b's answer doesn't count → c disappears too
+		expect([...form.visibleFieldIds({ a: false, b: 'hi' })]).toEqual(['a']);
 		expect([...form.visibleFieldIds({ a: true, b: '   ' })]).toEqual([
 			'a',
 			'b',
@@ -199,7 +199,7 @@ describe('visibleFieldIds', () => {
 });
 
 describe('parseForm', () => {
-	it('monta form a partir de JSON', () => {
+	it('builds a form from JSON', () => {
 		const parsed = parseForm(
 			JSON.parse(
 				'{"id":"f","version":2,"fields":[{"id":"n","type":"number","label":"N"}]}',
@@ -213,13 +213,13 @@ describe('parseForm', () => {
 		});
 	});
 
-	it('devolve issues sem lançar', () => {
+	it('returns issues without throwing', () => {
 		const parsed = parseForm({ id: 'f' });
 		expect(parsed.ok).toBe(false);
 	});
 });
 
-describe('tipos customizados', () => {
+describe('custom types', () => {
 	interface CpfField extends FieldBase {
 		readonly type: 'cpf';
 		readonly mask?: boolean;
@@ -238,7 +238,7 @@ describe('tipos customizados', () => {
 	});
 	const registry = createRegistry([...builtinFieldTypes, cpfType]);
 
-	it('funciona via registry', () => {
+	it('works through a registry', () => {
 		const parsed = parseForm(
 			{
 				id: 'f',
@@ -273,7 +273,7 @@ describe('tipos customizados', () => {
 		});
 	});
 
-	it('não aceita o tipo sem registry', () => {
+	it('rejects the type without the registry', () => {
 		expect(
 			parseForm({
 				id: 'f',
@@ -283,7 +283,7 @@ describe('tipos customizados', () => {
 		).toBe(false);
 	});
 
-	it('não deixa registrar o mesmo tipo duas vezes', () => {
+	it('refuses to register the same type twice', () => {
 		expect(() => createRegistry([cpfType, cpfType])).toThrow(
 			'registered twice',
 		);
@@ -291,9 +291,9 @@ describe('tipos customizados', () => {
 });
 
 describe('resolveText', () => {
-	it('resolve idioma com fallback', () => {
+	it('resolves the language with fallback', () => {
 		const text = { pt: 'Olá', en: 'Hello' };
-		expect(resolveText('Oi')).toBe('Oi');
+		expect(resolveText('Hi')).toBe('Hi');
 		expect(resolveText(text, 'en')).toBe('Hello');
 		expect(resolveText(text, 'en-US')).toBe('Hello');
 		expect(resolveText(text, 'es-AR', 'en_GB')).toBe('Hello');

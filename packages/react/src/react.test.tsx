@@ -25,76 +25,76 @@ import { useExcaliburForm } from './use-excalibur-form.ts';
 
 afterEach(cleanup);
 
-const vistoria = defineForm({
-	id: 'vistoria',
+const inspection = defineForm({
+	id: 'inspection',
 	version: 1,
 	fields: [
 		{
 			id: 'intro',
 			type: 'section',
-			label: { pt: 'Dados', en: 'Data' },
-			description: 'Preencha tudo',
+			label: { en: 'Details', pt: 'Dados' },
+			description: 'Fill in everything',
 		},
 		{
-			id: 'placa',
+			id: 'plate',
 			type: 'text',
-			label: { pt: 'Placa', en: 'Plate' },
+			label: { en: 'Plate', pt: 'Placa' },
 			required: true,
-			description: 'Só letras e números',
+			description: 'Letters and digits only',
 		},
-		{ id: 'email', type: 'text', label: 'E-mail', format: 'email' },
-		{ id: 'obs', type: 'longText', label: 'Observações' },
+		{ id: 'email', type: 'text', label: 'Email', format: 'email' },
+		{ id: 'notes', type: 'longText', label: 'Notes' },
 		{
-			id: 'combustivel',
+			id: 'fuel',
 			type: 'choice',
-			label: 'Combustível',
+			label: 'Fuel',
 			options: [
 				{ id: 'flex', label: 'Flex' },
 				{ id: 'diesel', label: 'Diesel' },
 			],
 		},
 		{
-			id: 'opcionais',
+			id: 'extras',
 			type: 'multiChoice',
-			label: 'Opcionais',
+			label: 'Extras',
 			options: [
-				{ id: 'ar', label: 'Ar' },
-				{ id: 'teto', label: 'Teto solar' },
-				{ id: 'som', label: 'Som' },
+				{ id: 'ac', label: 'A/C' },
+				{ id: 'sunroof', label: 'Sunroof' },
+				{ id: 'stereo', label: 'Stereo' },
 			],
 		},
 		{
-			id: 'tem_multa',
+			id: 'has_fines',
 			type: 'boolean',
-			label: 'Possui multas?',
+			label: 'Any fines?',
 			required: true,
 		},
 		{
-			id: 'valor_multas',
+			id: 'fines_amount',
 			type: 'number',
-			label: 'Valor das multas',
+			label: 'Fines amount',
 			required: true,
 			min: 0,
-			showIf: { field: 'tem_multa', op: 'eq', value: true },
+			showIf: { field: 'has_fines', op: 'eq', value: true },
 		},
 		{
-			id: 'nota',
+			id: 'rating',
 			type: 'scale',
-			label: 'Estado geral',
+			label: 'Overall condition',
 			max: 3,
-			minLabel: 'Ruim',
-			maxLabel: 'Ótimo',
+			minLabel: 'Poor',
+			maxLabel: 'Great',
 		},
 	],
 });
 
 describe('useExcaliburForm', () => {
-	it('controla respostas, visibilidade e resultado', () => {
-		const { result } = renderHook(() => useExcaliburForm(vistoria));
-		expect(result.current.visibleFieldIds.has('valor_multas')).toBe(false);
-		act(() => result.current.setAnswer('tem_multa', true));
-		expect(result.current.visibleFieldIds.has('valor_multas')).toBe(true);
-		expect(result.current.fieldState('tem_multa')).toMatchObject({
+	it('tracks answers, visibility and result', () => {
+		const { result } = renderHook(() => useExcaliburForm(inspection));
+		expect(result.current.visibleFieldIds.has('fines_amount')).toBe(false);
+		act(() => result.current.setAnswer('has_fines', true));
+		expect(result.current.visibleFieldIds.has('fines_amount')).toBe(true);
+		expect(result.current.fieldState('has_fines')).toMatchObject({
 			value: true,
 			visible: true,
 			touched: false,
@@ -102,58 +102,58 @@ describe('useExcaliburForm', () => {
 		act(() =>
 			result.current.setAnswers((prev) => ({
 				...prev,
-				placa: 'ABC',
-				valor_multas: 10,
+				plate: 'ABC',
+				fines_amount: 10,
 			})),
 		);
 		expect(result.current.result).toEqual({
 			ok: true,
-			data: { placa: 'ABC', tem_multa: true, valor_multas: 10 },
+			data: { plate: 'ABC', has_fines: true, fines_amount: 10 },
 		});
 	});
 
-	it('setAnswer com o mesmo valor não troca o objeto', () => {
+	it('setAnswer with the same value keeps the object', () => {
 		const { result } = renderHook(() =>
-			useExcaliburForm(vistoria, { initialAnswers: { placa: 'A' } }),
+			useExcaliburForm(inspection, { initialAnswers: { plate: 'A' } }),
 		);
 		const before = result.current.answers;
-		act(() => result.current.setAnswer('placa', 'A'));
+		act(() => result.current.setAnswer('plate', 'A'));
 		expect(result.current.answers).toBe(before);
 	});
 
-	it('mostra erros só depois de tocar ou enviar (padrão)', async () => {
+	it('shows errors only after touch or submit (default)', async () => {
 		const onInvalid = vi.fn<(errors: readonly unknown[]) => void>();
 		const { result } = renderHook(() =>
-			useExcaliburForm(vistoria, { onInvalid }),
+			useExcaliburForm(inspection, { onInvalid }),
 		);
 		expect(result.current.result.ok).toBe(false);
 		expect(result.current.errors.size).toBe(0);
-		act(() => result.current.touch('placa'));
-		act(() => result.current.touch('placa'));
-		expect([...result.current.errors.keys()]).toEqual(['placa']);
-		expect(result.current.fieldState('placa').invalid).toBe(true);
+		act(() => result.current.touch('plate'));
+		act(() => result.current.touch('plate'));
+		expect([...result.current.errors.keys()]).toEqual(['plate']);
+		expect(result.current.fieldState('plate').invalid).toBe(true);
 		await act(() => result.current.handleSubmit());
 		expect([...result.current.errors.keys()]).toEqual([
-			'placa',
-			'tem_multa',
+			'plate',
+			'has_fines',
 		]);
 		expect(onInvalid).toHaveBeenCalledOnce();
 		expect(result.current.submitCount).toBe(1);
 	});
 
-	it("showErrors 'submit' e 'always'", () => {
+	it("showErrors 'submit' and 'always'", () => {
 		const submit = renderHook(() =>
-			useExcaliburForm(vistoria, { showErrors: 'submit' }),
+			useExcaliburForm(inspection, { showErrors: 'submit' }),
 		);
-		act(() => submit.result.current.touch('placa'));
+		act(() => submit.result.current.touch('plate'));
 		expect(submit.result.current.errors.size).toBe(0);
 		const always = renderHook(() =>
-			useExcaliburForm(vistoria, { showErrors: 'always' }),
+			useExcaliburForm(inspection, { showErrors: 'always' }),
 		);
 		expect(always.result.current.errors.size).toBe(2);
 	});
 
-	it('envia os dados validados e controla isSubmitting', async () => {
+	it('submits the validated data and tracks isSubmitting', async () => {
 		let resolve = () => {};
 		const onSubmit = vi.fn<() => Promise<void>>(
 			() =>
@@ -162,8 +162,8 @@ describe('useExcaliburForm', () => {
 				}),
 		);
 		const { result } = renderHook(() =>
-			useExcaliburForm(vistoria, {
-				initialAnswers: { placa: 'X', tem_multa: false, hack: 1 },
+			useExcaliburForm(inspection, {
+				initialAnswers: { plate: 'X', has_fines: false, hack: 1 },
 				onSubmit,
 			}),
 		);
@@ -174,7 +174,7 @@ describe('useExcaliburForm', () => {
 		});
 		expect(preventDefault).toHaveBeenCalled();
 		expect(result.current.isSubmitting).toBe(true);
-		expect(onSubmit).toHaveBeenCalledWith({ placa: 'X', tem_multa: false });
+		expect(onSubmit).toHaveBeenCalledWith({ plate: 'X', has_fines: false });
 		await act(async () => {
 			resolve();
 			await done;
@@ -182,32 +182,32 @@ describe('useExcaliburForm', () => {
 		expect(result.current.isSubmitting).toBe(false);
 	});
 
-	it('enviar sem onSubmit só valida', async () => {
+	it('submitting without onSubmit only validates', async () => {
 		const { result } = renderHook(() =>
-			useExcaliburForm(vistoria, {
-				initialAnswers: { placa: 'X', tem_multa: false },
+			useExcaliburForm(inspection, {
+				initialAnswers: { plate: 'X', has_fines: false },
 			}),
 		);
 		await act(() => result.current.handleSubmit());
 		expect(result.current.isSubmitting).toBe(false);
 	});
 
-	it('reset volta pro inicial ou pras respostas dadas', () => {
+	it('reset goes back to the initial or given answers', () => {
 		const { result } = renderHook(() =>
-			useExcaliburForm(vistoria, { initialAnswers: { placa: 'A' } }),
+			useExcaliburForm(inspection, { initialAnswers: { plate: 'A' } }),
 		);
 		act(() => {
-			result.current.setAnswer('placa', 'B');
-			result.current.touch('placa');
+			result.current.setAnswer('plate', 'B');
+			result.current.touch('plate');
 		});
 		act(() => result.current.reset());
-		expect(result.current.answers).toEqual({ placa: 'A' });
+		expect(result.current.answers).toEqual({ plate: 'A' });
 		expect(result.current.touched.size).toBe(0);
-		act(() => result.current.reset({ placa: 'C' }));
-		expect(result.current.answers).toEqual({ placa: 'C' });
+		act(() => result.current.reset({ plate: 'C' }));
+		expect(result.current.answers).toEqual({ plate: 'C' });
 	});
 
-	it('id "constructor" vira chave própria', () => {
+	it('an id of "constructor" becomes an own key', () => {
 		const form = defineForm({
 			id: 'f',
 			version: 1,
@@ -224,99 +224,99 @@ describe('useExcaliburForm', () => {
 });
 
 describe('FormRenderer', () => {
-	it('preenche e envia um form completo', async () => {
+	it('fills in and submits a full form', async () => {
 		const user = userEvent.setup();
 		const onSubmit = vi.fn<(data: unknown) => void>();
-		render(<FormRenderer form={vistoria} onSubmit={onSubmit} />);
+		render(<FormRenderer form={inspection} onSubmit={onSubmit} />);
 
-		expect(screen.getByRole('heading', { name: 'Dados' })).toBeDefined();
-		expect(screen.getByText('Preencha tudo')).toBeDefined();
-		expect(screen.queryByLabelText(/Valor das multas/)).toBeNull();
+		expect(screen.getByRole('heading', { name: 'Details' })).toBeDefined();
+		expect(screen.getByText('Fill in everything')).toBeDefined();
+		expect(screen.queryByLabelText(/Fines amount/)).toBeNull();
 
-		await user.type(screen.getByLabelText(/Placa/), 'ABC1D23');
-		await user.type(screen.getByLabelText('E-mail'), 'a@b.co');
-		await user.type(screen.getByLabelText('Observações'), 'ok');
+		await user.type(screen.getByLabelText(/Plate/), 'ABC1D23');
+		await user.type(screen.getByLabelText('Email'), 'a@b.co');
+		await user.type(screen.getByLabelText('Notes'), 'ok');
 		await user.click(screen.getByLabelText('Diesel'));
-		await user.click(screen.getByLabelText('Som'));
-		await user.click(screen.getByLabelText('Ar'));
-		await user.click(screen.getByLabelText('Teto solar'));
-		await user.click(screen.getByLabelText('Teto solar'));
-		await user.click(screen.getByLabelText('Sim'));
-		await user.type(screen.getByLabelText(/Valor das multas/), '12.5');
+		await user.click(screen.getByLabelText('Stereo'));
+		await user.click(screen.getByLabelText('A/C'));
+		await user.click(screen.getByLabelText('Sunroof'));
+		await user.click(screen.getByLabelText('Sunroof'));
+		await user.click(screen.getByLabelText('Yes'));
+		await user.type(screen.getByLabelText(/Fines amount/), '12.5');
 		await user.click(screen.getByLabelText('3'));
-		expect(screen.getByText('Ruim')).toBeDefined();
-		await user.click(screen.getByRole('button', { name: 'Enviar' }));
+		expect(screen.getByText('Poor')).toBeDefined();
+		await user.click(screen.getByRole('button', { name: 'Submit' }));
 
 		expect(onSubmit).toHaveBeenCalledWith({
-			placa: 'ABC1D23',
+			plate: 'ABC1D23',
 			email: 'a@b.co',
-			obs: 'ok',
-			combustivel: 'diesel',
-			opcionais: ['ar', 'som'],
-			tem_multa: true,
-			valor_multas: 12.5,
-			nota: 3,
+			notes: 'ok',
+			fuel: 'diesel',
+			extras: ['ac', 'stereo'],
+			has_fines: true,
+			fines_amount: 12.5,
+			rating: 3,
 		});
 	});
 
-	it('mostra erros acessíveis e foca o primeiro campo inválido', async () => {
+	it('shows accessible errors and focuses the first invalid field', async () => {
 		const user = userEvent.setup();
-		render(<FormRenderer form={vistoria} />);
-		const placa = screen.getByLabelText(/Placa/);
-		expect(placa.getAttribute('aria-invalid')).toBeNull();
+		render(<FormRenderer form={inspection} />);
+		const plate = screen.getByLabelText(/Plate/);
+		expect(plate.getAttribute('aria-invalid')).toBeNull();
 
-		await user.click(screen.getByRole('button', { name: 'Enviar' }));
-		expect(placa.getAttribute('aria-invalid')).toBe('true');
-		expect(document.activeElement).toBe(placa);
-		const describedBy = placa.getAttribute('aria-describedby') ?? '';
+		await user.click(screen.getByRole('button', { name: 'Submit' }));
+		expect(plate.getAttribute('aria-invalid')).toBe('true');
+		expect(document.activeElement).toBe(plate);
+		const describedBy = plate.getAttribute('aria-describedby') ?? '';
 		const texts = describedBy
 			.split(' ')
 			.map((id) => document.getElementById(id)?.textContent);
-		expect(texts).toEqual(['Só letras e números', 'Campo obrigatório']);
+		expect(texts).toEqual(['Letters and digits only', 'Required']);
 
-		const group = screen.getByRole('group', { name: /Possui multas/ });
+		const group = screen.getByRole('group', { name: /Any fines/ });
 		expect(group.tagName).toBe('FIELDSET');
-		expect(group.textContent).toContain('Campo obrigatório');
+		expect(group.textContent).toContain('Required');
 
-		await user.type(placa, 'X');
-		expect(placa.getAttribute('aria-invalid')).toBeNull();
+		await user.type(plate, 'X');
+		expect(plate.getAttribute('aria-invalid')).toBeNull();
 	});
 
-	it('mostra o erro de formato depois de sair do campo', async () => {
+	it('shows the format error after leaving the field', async () => {
 		const user = userEvent.setup();
-		render(<FormRenderer form={vistoria} />);
-		await user.type(screen.getByLabelText('E-mail'), 'nao-e-email');
-		expect(screen.queryByText('E-mail inválido')).toBeNull();
+		render(<FormRenderer form={inspection} />);
+		await user.type(screen.getByLabelText('Email'), 'not-an-email');
+		expect(screen.queryByText('Invalid email')).toBeNull();
 		await user.tab();
-		expect(screen.getByText('E-mail inválido')).toBeDefined();
+		expect(screen.getByText('Invalid email')).toBeDefined();
 	});
 
-	it('focusOnError false não move o foco', async () => {
+	it('focusOnError false does not move focus', async () => {
 		const user = userEvent.setup();
-		render(<FormRenderer form={vistoria} focusOnError={false} />);
-		const button = screen.getByRole('button', { name: 'Enviar' });
+		render(<FormRenderer form={inspection} focusOnError={false} />);
+		const button = screen.getByRole('button', { name: 'Submit' });
 		await user.click(button);
 		expect(document.activeElement).toBe(button);
 	});
 
-	it('usa o idioma, labels e mensagens próprias', async () => {
+	it('uses the language, custom labels and messages', async () => {
 		const user = userEvent.setup();
 		render(
 			<FormRenderer
-				form={vistoria}
-				locale="en-US"
-				labels={{ yes: 'Yep' }}
-				formatError={(error) => `erro:${error.code}`}
+				form={inspection}
+				locale="pt-BR"
+				labels={{ yes: 'Claro' }}
+				formatError={(error) => `error:${error.code}`}
 			/>,
 		);
-		expect(screen.getByLabelText(/Plate/)).toBeDefined();
-		expect(screen.getByLabelText('Yep')).toBeDefined();
-		expect(screen.getByLabelText('No')).toBeDefined();
-		await user.click(screen.getByRole('button', { name: 'Submit' }));
-		expect(screen.getAllByText('erro:required')).toHaveLength(2);
+		expect(screen.getByLabelText(/Placa/)).toBeDefined();
+		expect(screen.getByLabelText('Claro')).toBeDefined();
+		expect(screen.getByLabelText('Não')).toBeDefined();
+		await user.click(screen.getByRole('button', { name: 'Enviar' }));
+		expect(screen.getAllByText('error:required')).toHaveLength(2);
 	});
 
-	it('troca componentes por tipo, moldura e botões', async () => {
+	it('replaces components by type, the frame and the buttons', async () => {
 		const user = userEvent.setup();
 		const onSubmit = vi.fn<(data: unknown) => void>();
 		function Switch({ id, value, onChange, labels }: FieldInputProps) {
@@ -334,8 +334,8 @@ describe('FormRenderer', () => {
 		}
 		render(
 			<FormRenderer
-				form={vistoria}
-				initialAnswers={{ placa: 'X' }}
+				form={inspection}
+				initialAnswers={{ plate: 'X' }}
 				onSubmit={onSubmit}
 				components={{
 					boolean: Switch,
@@ -348,25 +348,25 @@ describe('FormRenderer', () => {
 					</div>
 				)}
 			>
-				<button type="submit">Salvar</button>
+				<button type="submit">Save</button>
 			</FormRenderer>,
 		);
-		expect(screen.getByRole('heading', { name: 'Dados!' })).toBeDefined();
-		expect(screen.queryByRole('button', { name: 'Enviar' })).toBeNull();
+		expect(screen.getByRole('heading', { name: 'Details!' })).toBeDefined();
+		expect(screen.queryByRole('button', { name: 'Submit' })).toBeNull();
 		await user.click(screen.getByRole('switch'));
 		await user.click(screen.getByRole('switch'));
-		await user.click(screen.getByRole('button', { name: 'Salvar' }));
-		expect(onSubmit).toHaveBeenCalledWith({ placa: 'X', tem_multa: false });
-		// 8 campos com resposta, menos valor_multas (escondido)
+		await user.click(screen.getByRole('button', { name: 'Save' }));
+		expect(onSubmit).toHaveBeenCalledWith({ plate: 'X', has_fines: false });
+		// 8 answerable fields, minus fines_amount (hidden)
 		expect(screen.getAllByTestId('wrap')).toHaveLength(7);
 	});
 
-	it('aceita um controller e desabilita durante o envio', async () => {
+	it('accepts a controller and disables while submitting', async () => {
 		const user = userEvent.setup();
 		let resolve = () => {};
 		function Controlled() {
-			const controller = useExcaliburForm(vistoria, {
-				initialAnswers: { placa: 'X', tem_multa: false },
+			const controller = useExcaliburForm(inspection, {
+				initialAnswers: { plate: 'X', has_fines: false },
 				onSubmit: () =>
 					new Promise<void>((r) => {
 						resolve = r;
@@ -374,33 +374,33 @@ describe('FormRenderer', () => {
 			});
 			return (
 				<>
-					<FormRenderer controller={controller} submitLabel="Ir" />
+					<FormRenderer controller={controller} submitLabel="Go" />
 					<output>{JSON.stringify(controller.answers)}</output>
 				</>
 			);
 		}
 		render(<Controlled />);
-		await user.clear(screen.getByLabelText(/Placa/));
-		await user.type(screen.getByLabelText(/Placa/), 'Y');
-		expect(screen.getByRole('status').textContent).toContain('"placa":"Y"');
-		await user.click(screen.getByRole('button', { name: 'Ir' }));
+		await user.clear(screen.getByLabelText(/Plate/));
+		await user.type(screen.getByLabelText(/Plate/), 'Y');
+		expect(screen.getByRole('status').textContent).toContain('"plate":"Y"');
+		await user.click(screen.getByRole('button', { name: 'Go' }));
 		expect(
-			screen.getByRole<HTMLButtonElement>('button', { name: 'Ir' })
+			screen.getByRole<HTMLButtonElement>('button', { name: 'Go' })
 				.disabled,
 		).toBe(true);
-		expect(screen.getByLabelText<HTMLInputElement>(/Placa/).disabled).toBe(
+		expect(screen.getByLabelText<HTMLInputElement>(/Plate/).disabled).toBe(
 			true,
 		);
 		await act(async () => resolve());
 		await waitFor(() =>
 			expect(
-				screen.getByRole<HTMLButtonElement>('button', { name: 'Ir' })
+				screen.getByRole<HTMLButtonElement>('button', { name: 'Go' })
 					.disabled,
 			).toBe(false),
 		);
 	});
 
-	it('campo numérico: apagar volta pra vazio e reset atualiza o texto', async () => {
+	it('number field: clearing goes back to empty and reset updates the text', async () => {
 		const user = userEvent.setup();
 		let reset: (answers?: Record<string, unknown>) => void = () => {};
 		const form = defineForm({
@@ -430,7 +430,7 @@ describe('FormRenderer', () => {
 		expect(input.value).toBe('');
 	});
 
-	it('tipo customizado: com componente renderiza, sem componente omite', async () => {
+	it('custom type: rendered with a component, skipped without one', async () => {
 		interface ColorField extends FieldBase {
 			readonly type: 'color';
 		}
@@ -458,18 +458,18 @@ describe('FormRenderer', () => {
 				id: 'c',
 				version: 1,
 				fields: [
-					{ id: 'cor', type: 'color', label: 'Cor' },
-					{ id: 'local', type: 'geo', label: 'Local' },
+					{ id: 'color', type: 'color', label: 'Color' },
+					{ id: 'location', type: 'geo', label: 'Location' },
 				],
 			},
 			{ registry: createRegistry([...builtinFieldTypes, color, geo]) },
 		);
-		if (!parsed.ok) throw new Error('schema inválido');
+		if (!parsed.ok) throw new Error('invalid schema');
 		function Swatches({ onChange }: FieldInputProps) {
 			return (
 				<div>
 					<button type="button" onClick={() => onChange('red')}>
-						vermelho
+						red
 					</button>
 				</div>
 			);
@@ -484,40 +484,42 @@ describe('FormRenderer', () => {
 				components={{ color: Swatches }}
 			/>,
 		);
-		expect(screen.getByRole('group', { name: 'Cor' })).toBeDefined();
-		expect(screen.queryByText('Local')).toBeNull();
-		await user.click(screen.getByText('vermelho'));
-		await user.click(screen.getByRole('button', { name: 'Enviar' }));
-		expect(onSubmit).toHaveBeenCalledWith({ cor: 'red' });
+		expect(screen.getByRole('group', { name: 'Color' })).toBeDefined();
+		expect(screen.queryByText('Location')).toBeNull();
+		await user.click(screen.getByText('red'));
+		await user.click(screen.getByRole('button', { name: 'Submit' }));
+		expect(onSubmit).toHaveBeenCalledWith({ color: 'red' });
 	});
 
-	it('erro no objeto todo aparece no fim do form', async () => {
+	it('an error on the whole object shows at the end of the form', async () => {
 		const user = userEvent.setup();
 		function Broken() {
-			const controller = useExcaliburForm(vistoria, {
+			const controller = useExcaliburForm(inspection, {
 				initialAnswers: [] as never,
 			});
 			return <FormRenderer controller={controller} />;
 		}
 		render(<Broken />);
-		await user.click(screen.getByRole('button', { name: 'Enviar' }));
-		expect(screen.getByRole('alert').textContent).toBe('Valor inválido');
+		await user.click(screen.getByRole('button', { name: 'Submit' }));
+		expect(screen.getByRole('alert').textContent).toBe('Invalid value');
 	});
 });
 
 describe('defaultErrorMessage', () => {
-	it('traduz por idioma e cai em pt', () => {
+	it('translates by language and falls back to English', () => {
 		const issue = { code: 'too_few', params: { min: 2 } } as const;
-		expect(defaultErrorMessage(issue)).toBe('Selecione pelo menos 2');
-		expect(defaultErrorMessage(issue, 'en-GB')).toBe('Select at least 2');
+		expect(defaultErrorMessage(issue)).toBe('Select at least 2');
+		expect(defaultErrorMessage(issue, 'pt-BR')).toBe(
+			'Selecione pelo menos 2',
+		);
 		expect(defaultErrorMessage(issue, 'es')).toBe('Selecciona al menos 2');
-		expect(defaultErrorMessage(issue, 'fr')).toBe('Selecione pelo menos 2');
+		expect(defaultErrorMessage(issue, 'fr')).toBe('Select at least 2');
 		expect(
 			defaultErrorMessage({ code: 'nope' } as unknown as typeof issue),
-		).toBe('Valor inválido');
+		).toBe('Invalid value');
 	});
 
-	it('todas as mensagens de todos os idiomas', () => {
+	it('every message in every language', () => {
 		const codes = [
 			'required',
 			'invalid_type',

@@ -12,7 +12,7 @@ import { createReader } from './reader.ts';
 import type { FieldBase, FormSchema } from './types.ts';
 
 export interface ParseOptions {
-	/** Tipos de campo aceitos. Padrão: os nativos. */
+	/** Accepted field types. Default: the built-ins. */
 	readonly registry?: FieldRegistry;
 	readonly limits?: Partial<SchemaLimits>;
 }
@@ -28,8 +28,8 @@ export function resolveLimits(
 }
 
 /**
- * Valida um schema vindo de fora (banco, API, builder) e devolve uma cópia
- * limpa e congelada. Propriedades desconhecidas são descartadas.
+ * Validates a schema from outside (database, API, builder) and returns a
+ * clean, frozen copy. Unknown properties are dropped.
  */
 export function parseSchema(
 	raw: unknown,
@@ -73,7 +73,7 @@ export function parseSchema(
 		return fail();
 	}
 
-	// 1ª passada: posições dos ids, pra diferenciar "não existe" de "vem depois".
+	// First pass: id positions, to tell "doesn't exist" from "comes later".
 	const indexById = new Map<string, number>();
 	rawFields.forEach((item: unknown, index) => {
 		const fieldId = isRecord(item) ? ownValue(item, 'id') : undefined;
@@ -145,7 +145,7 @@ export function parseSchema(
 				);
 			}
 		} else {
-			// Com id duplicado, a chave padrão também colidiria: um erro basta.
+			// With a duplicate id, the default key would clash too: one error is enough.
 			const exportKey = key ?? (duplicateId ? undefined : fieldId);
 			if (exportKey !== undefined) {
 				if (seenKeys.has(exportKey)) {

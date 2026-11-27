@@ -1,58 +1,62 @@
-# Plano: ExcaliburForm
+# Plan: ExcaliburForm
 
-> **Ideia central:** formulários que são **dados**, não código. Os usuários criam as perguntas, a lib valida igual no front e no back e exporta as respostas em qualquer formato.
+**English** · [Português (Brasil)](PLAN.pt-BR.md)
 
-## Posicionamento
+> **Core idea:** forms that are **data**, not code. Users create the questions, the library validates the same way on front end and back end, and exports the answers in any format.
 
-> Se seu form é fixo, use react-hook-form. Se seus usuários criam os forms, use isso.
+## Positioning
 
-A lib vale a pena quando:
+> If your form is fixed, use react-hook-form. If your users create the forms, use this.
 
-1. **Quem cria as perguntas não é o dev**: um admin ou cliente cadastra as perguntas num painel.
-2. **O mesmo form roda em vários lugares**: o schema é JSON, então front, back, mobile e PDF usam a mesma definição.
-3. **A resposta sai em formatos diferentes**: lista pergunta/resposta, JSON, CSV, FormData.
-4. **Os forms mudam com o tempo**: com o schema versionado, respostas antigas continuam legíveis.
-5. **Volume**: 30 checklists viram 30 JSONs, não 30 componentes.
+The library pays off when:
 
-Público: SaaS com perguntas configuráveis (checklists, vistorias, anamnese, onboarding, pesquisas), form builders internos e formulários por cliente/tenant.
+1. **Whoever writes the questions isn't the developer**: an admin or customer creates the questions in a panel.
+2. **The same form runs in many places**: the schema is JSON, so front end, back end, mobile and PDF share one definition.
+3. **Answers go out in different formats**: question/answer list, JSON, CSV, FormData.
+4. **Forms change over time**: with a versioned schema, old answers stay readable.
+5. **Volume**: 30 checklists become 30 JSON documents, not 30 components.
 
-## 1. Estrutura (pnpm monorepo)
+Audience: SaaS products with configurable questions (checklists, inspections, medical intake, onboarding, surveys), internal form builders and per-customer/tenant forms.
+
+## 1. Structure (pnpm monorepo)
 
 ```
 packages/
-  core/      @excalibur-form/core     → schema, tipos de campo, validação, condições, exporters (zero deps, Node + browser)
-  react/     @excalibur-form/react    → hooks headless + <FormRenderer> com mapa de componentes   (fase 3)
-  builder/   @excalibur-form/builder  → <FormBuilder> pra montar o form visualmente              (fase 4)
+  core/      @excalibur-form/core     → schema, field types, validation, conditions, exporters (zero deps, Node + browser)
+  react/     @excalibur-form/react    → headless hooks + <FormRenderer> with a component map    (phase 3)
+  builder/   @excalibur-form/builder  → <FormBuilder> to build the form visually               (phase 4)
 apps/
-  demo/      Vite + React: schema JSON ↔ form ↔ resultado lado a lado
+  demo/      Vite + React: JSON schema ↔ form ↔ result side by side
 ```
 
-Tooling: TS 7 strict (`isolatedDeclarations`, `exactOptionalPropertyTypes`), build com `tsc` (**só ESM**: o Node atual faz `require()` de ESM), vitest, oxlint + oxfmt, changesets, licença MIT.
+Tooling: TS 7 strict (`isolatedDeclarations`, `exactOptionalPropertyTypes`), built with `tsc` (**ESM only**: current Node can `require()` ESM), vitest, oxlint + oxfmt, changesets, MIT license.
 
-O scope `@excalibur-form` no npm fica pra quando for publicar.
+The `@excalibur-form` npm scope will be sorted out at publish time.
 
-## 2. Conceitos do core
+**Languages:** English is the base language of the project (code, comments, tests, docs and the library's default texts), with Brazilian Portuguese built in. Docs live in `*.md` (English) and `*.pt-BR.md` (Portuguese).
 
-**Schema (JSON puro, salvo no banco)**
+## 2. Core concepts
+
+**Schema (plain JSON, stored in a database)**
 
 ```json
 {
-	"id": "vistoria",
+	"id": "inspection",
 	"version": 3,
 	"fields": [
 		{
-			"id": "tem_multa",
+			"id": "has_fines",
 			"type": "boolean",
-			"label": "Possui multas?",
+			"label": { "en": "Any fines?", "pt": "Possui multas?" },
 			"required": true
 		},
 		{
-			"id": "opcionais",
+			"id": "extras",
 			"type": "multiChoice",
-			"label": "Opcionais",
+			"label": "Extras",
 			"options": [
-				{ "id": "ar", "label": "Ar" },
-				{ "id": "teto", "label": "Teto" }
+				{ "id": "ac", "label": "A/C" },
+				{ "id": "sunroof", "label": "Sunroof" }
 			],
 			"minSelected": 1
 		},
@@ -60,81 +64,82 @@ O scope `@excalibur-form` no npm fica pra quando for publicar.
 			"id": "km",
 			"type": "number",
 			"label": "KM",
-			"showIf": { "field": "tem_multa", "op": "eq", "value": false }
+			"showIf": { "field": "has_fines", "op": "eq", "value": false }
 		}
 	]
 }
 ```
 
-- **IDs estáveis** em campos e opções. Respostas e condições usam o `id`. `key` (opcional, padrão = `id`) é o nome usado nas exportações.
-- **O próprio schema é validado** (`parseSchema` / `parseForm`), porque vem do banco ou de usuário. Props desconhecidas são descartadas e o resultado vem congelado.
-- **Registry de tipos de campo**: cada tipo define `parseConfig`, `isEmpty`, `validate`, `conditionOps` e `isValidConditionValue`. Tipos customizados usam a mesma API (`defineFieldType` + `createRegistry`).
+- **Stable IDs** on fields and options. Answers and conditions use the `id`. `key` (optional, default = `id`) is the name used in exports.
+- **The schema itself is validated** (`parseSchema` / `parseForm`), because it comes from a database or a user. Unknown props are dropped and the result is frozen.
+- **Field type registry**: each type defines `parseConfig`, `isEmpty`, `validate`, `conditionOps` and `isValidConditionValue`. Custom types use the same API (`defineFieldType` + `createRegistry`).
 
-**Tipos no v1:** `text` (com `format: email | url`), `longText`, `number`, `boolean`, `choice`, `multiChoice`, `scale`, `section`.
-**Depois:** `date`, `file/image`, `group/repeater`, `matrix`, `signature`, `location`.
+**Types in v1:** `text` (with `format: email | url`), `longText`, `number`, `boolean`, `choice`, `multiChoice`, `scale`, `section`.
+**Later:** `date`, `file/image`, `group/repeater`, `matrix`, `signature`, `location`.
 
-**Condições:** DSL em JSON (`all` / `any` / `not`, `eq`, `neq`, `gt`, `gte`, `lt`, `lte`, `in`, `notIn`, `includes`, `answered`, `notAnswered`). Sem `eval`.
+**Conditions:** a JSON DSL (`all` / `any` / `not`, `eq`, `neq`, `gt`, `gte`, `lt`, `lte`, `in`, `notIn`, `includes`, `answered`, `notAnswered`). No `eval`.
 
-- Só pode referenciar campos **anteriores**, o que evita ciclos.
-- Comparações só batem com campos respondidos e visíveis. Visibilidade cascateia.
-- Campo escondido não é validado e sai do resultado.
+- Only **earlier** fields can be referenced, which prevents cycles.
+- Comparisons only match answered, visible fields. Visibility cascades.
+- Hidden fields aren't validated and are left out of the result.
 
-**Validação:** `form.validate(answers)` devolve `{ ok, data } | { ok: false, errors: [{ fieldId, code, params }] }`. São **códigos**, não mensagens, e cada app traduz. `data` é tipado via `InferAnswers` quando o form vem de `defineForm`.
+**Validation:** `form.validate(answers)` returns `{ ok, data } | { ok: false, errors: [{ fieldId, code, params }] }`. These are **codes**, not messages, and each app translates them. `data` is typed via `InferAnswers` when the form comes from `defineForm`.
 
-**i18n:** textos podem ser `string` ou `{ pt: "...", en: "..." }`, resolvidos com `resolveText`.
+**i18n:** texts can be a `string` or `{ en: "...", pt: "..." }`, resolved with `resolveText` (`pt-BR` falls back to `pt`). The library's own texts ("Yes"/"No" in exports, React messages and button) are **English by default** and **Brazilian Portuguese** with `locale: 'pt-BR'` (Spanish is included too).
 
-## 3. Exporters (fase 2, plugáveis)
+## 3. Exporters (phase 2, pluggable)
 
-| Formato             | Uso                                                              |
+| Format              | Use                                                              |
 | ------------------- | ---------------------------------------------------------------- |
-| `json`              | `{ key: valor }` pra API                                         |
-| `qa-list`           | `[{ question, answer }]` legível, pra email ou tela de resumo    |
-| `formData`          | envio com arquivos                                               |
-| `csv`               | várias submissões viram linhas, com cabeçalho a partir do schema |
-| `markdown` / `html` | email e relatório                                                |
-| `json-schema`       | interoperar com outras ferramentas                               |
+| `json`              | `{ key: value }` for an API                                      |
+| `qa-list`           | Readable `[{ question, answer }]`, for email or a summary screen |
+| `formData`          | submitting with files                                            |
+| `csv`               | several submissions become rows, with a header from the schema   |
+| `markdown` / `html` | email and reports                                                |
+| `json-schema`       | interop with other tools                                         |
 
-Cada tipo de campo ganha um `toDisplay(value, field, context)` pra isso (`context` traz idioma, textos fixos como "Sim"/"Não" e `text()` pra resolver `LocalizedText`). Fase 2 entregou `json`, `qa-list`, `formData` (+ `toEntries`), `csv` e `markdown`; `html` e `json-schema` ficam pra depois.
+Each field type gets a `toDisplay(value, field, context)` for this (`context` carries the language, fixed texts like "Yes"/"No" and `text()` to resolve a `LocalizedText`). Phase 2 shipped `json`, `qa-list`, `formData` (+ `toEntries`), `csv` and `markdown`; `html` and `json-schema` come later.
 
-## 4. Versionamento
+## 4. Versioning
 
-- Cada resposta guarda `{ formId, version }`, e o app guarda um snapshot do schema por versão.
-- `readAnswers(answers, schemaSnapshot)` exibe respostas antigas mesmo com perguntas removidas.
-- Depois: `diffSchemas(v2, v3)`.
+- Each response stores `{ formId, version }`, and the app keeps a schema snapshot per version.
+- `readAnswers(answers, schemaSnapshot)` shows old answers even when questions were removed.
+- Later: `diffSchemas(v2, v3)`.
 
 ## 5. React (`/react`)
 
-- `useExcaliburForm(schema)`: estado, visibilidade, erros e submit (headless).
-- `<FormRenderer form components={{ boolean: MeuSwitch }} />`: componentes padrão sem estilo e cada um pode ser trocado.
-- Entregue na fase 3: o hook recebe um `Form` (não o JSON cru) e devolve um `controller` que também pode ir pro `<FormRenderer controller>`. Componentes sem CSS, com classes `ef-*` e acessibilidade (`fieldset`/`legend`, `aria-describedby`, foco no primeiro erro). Mensagens de erro padrão em pt/en/es.
+- `useExcaliburForm(schema)`: state, visibility, errors and submit (headless).
+- `<FormRenderer form components={{ boolean: MySwitch }} />`: unstyled default components, each one swappable.
+- Shipped in phase 3: the hook takes a `Form` (not raw JSON) and returns a `controller` that can also go to `<FormRenderer controller>`. Components ship no CSS, use `ef-*` classes and are accessible (`fieldset`/`legend`, `aria-describedby`, focus on the first error). Default error messages in en/pt/es (English without a `locale`).
 
 ## 6. Builder (`/builder`)
 
-- `<FormBuilder value={schema} onChange={setSchema} />`: adicionar e reordenar campos, editar config, editor de condições e preview.
-- Gera IDs estáveis sozinho e só emite schemas válidos. É o argumento de venda.
+- `<FormBuilder value={schema} onChange={setSchema} />`: add and reorder fields, edit config, condition editor and preview.
+- Generates stable IDs on its own and only emits valid schemas. This is the selling point.
 
-## 7. Segurança (o schema vem de usuário)
+## 7. Security (the schema comes from users)
 
-- Labels sempre renderizados como texto, nunca HTML.
-- Sem regex de usuário (risco de ReDoS). Formatos pré-definidos com checagem linear.
-- Limites configuráveis (`SchemaLimits`): campos, opções, tamanho de textos, idiomas, profundidade e nós das condições, tamanho das respostas, passos da escala.
-- O back valida com o mesmo core.
+- Labels are always rendered as text, never HTML.
+- No user regex (ReDoS risk). Predefined formats with linear checks.
+- Configurable limits (`SchemaLimits`): fields, options, text length, languages, condition depth and nodes, answer size, scale steps.
+- The back end validates with the same core.
 
 ## 8. Roadmap
 
-| Fase  | Entrega                                                                                    | Status |
-| ----- | ------------------------------------------------------------------------------------------ | ------ |
-| **0** | Monorepo, tooling, CI (format, lint, typecheck, test, build)                               | ✅     |
-| **1** | Core: schema + parse, registry, 8 tipos, validação, condições, inferência de tipos, testes | ✅     |
-| **—** | Demo (`apps/demo`)                                                                         | ✅     |
-| **2** | Exporters (json, qa-list, formData, csv, markdown)                                         | ✅     |
-| **3** | `@excalibur-form/react` (a demo passa a usar ele)                                          | ✅     |
-| **4** | Builder                                                                                    |        |
-| **5** | Versionamento, docs, publicar **v0.1**                                                     |        |
-| **6** | Primeiro uso real: fichas customizáveis no Excalibur Notes                                 |        |
+| Phase | Deliverable                                                                            | Status |
+| ----- | -------------------------------------------------------------------------------------- | ------ |
+| **0** | Monorepo, tooling, CI (format, lint, typecheck, test, build)                           | ✅     |
+| **1** | Core: schema + parse, registry, 8 types, validation, conditions, type inference, tests | ✅     |
+| **—** | Demo (`apps/demo`)                                                                     | ✅     |
+| **2** | Exporters (json, qa-list, formData, csv, markdown)                                     | ✅     |
+| **3** | `@excalibur-form/react` (the demo switches to it)                                      | ✅     |
+| **4** | Builder                                                                                |        |
+| **5** | Versioning, docs, publish **v0.1**                                                     |        |
+| **6** | First real use: customizable sheets in Excalibur Notes                                 |        |
 
-## 9. Decisões em aberto
+## 9. Open decisions
 
-1. Scope no npm (ver quando for publicar).
-2. ~~Estilo dos componentes padrão do `/react`~~: decidido, sem estilo (classes `ef-*`).
-3. Builder no v0.1 ou v0.2.
+1. npm scope (to check at publish time).
+2. ~~Default component styling in `/react`~~: decided, unstyled (`ef-*` classes).
+3. Builder in v0.1 or v0.2.
+4. ~~Project language~~: decided, English as the base (code, docs, library defaults) with Brazilian Portuguese built in; docs in `*.md` (English) and `*.pt-BR.md`.

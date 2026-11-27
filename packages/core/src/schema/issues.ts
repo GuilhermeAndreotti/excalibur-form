@@ -16,7 +16,7 @@ export type SchemaIssueCode =
 	| 'forward_reference'
 	| 'unsupported_operator';
 
-/** Problema encontrado ao validar um schema. `message` é pra devs, em inglês. */
+/** Problem found while validating a schema. `message` is meant for developers. */
 export interface SchemaIssue {
 	readonly path: readonly PathSegment[];
 	readonly code: SchemaIssueCode;

@@ -1,6 +1,6 @@
 /**
- * Texto exibido ao usuário: uma string simples ou um mapa `locale → texto`
- * (ex.: `{ pt: 'Possui multas?', en: 'Any fines?' }`).
+ * User-facing text: a plain string or a `locale → text` map
+ * (e.g. `{ en: 'Any fines?', pt: 'Possui multas?' }`).
  */
 export type LocalizedText = string | { readonly [locale: string]: string };
 
@@ -10,7 +10,7 @@ function pick(
 ): string | undefined {
 	if (locale === undefined) return undefined;
 	if (Object.hasOwn(text, locale)) return text[locale];
-	// `pt-BR` cai em `pt`.
+	// `pt-BR` falls back to `pt`.
 	const language = locale.split(/[-_]/)[0] ?? '';
 	return language !== locale && Object.hasOwn(text, language)
 		? text[language]
@@ -18,8 +18,8 @@ function pick(
 }
 
 /**
- * Resolve um `LocalizedText` para uma string. Tenta `locale` (e o idioma sem
- * região, `pt-BR` → `pt`), depois `fallbackLocale`, depois o primeiro valor.
+ * Resolves a `LocalizedText` to a string. Tries `locale` (and its language
+ * without region, `pt-BR` → `pt`), then `fallbackLocale`, then the first value.
  */
 export function resolveText(
 	text: LocalizedText,

@@ -1,7 +1,7 @@
 {
 	"name": "@excalibur-form/react",
 	"version": "0.0.0",
-	"description": "ExcaliburForm pra React: hook headless (estado, visibilidade, erros, submit) e <FormRenderer> com componentes sem estilo e trocáveis.",
+	"description": "ExcaliburForm for React: a headless hook (state, visibility, errors, submit) and a <FormRenderer> with unstyled, swappable components.",
 	"license": "MIT",
 	"files": [
 		"dist",

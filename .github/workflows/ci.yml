@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
     quality:
-        name: Formato, lint e tipos
+        name: Format, lint and types
         runs-on: ubuntu-latest
         timeout-minutes: 10
         steps:
@@ -25,7 +25,7 @@ jobs:
             - run: pnpm run typecheck
 
     test:
-        name: Testes e build
+        name: Tests and build
         runs-on: ubuntu-latest
         timeout-minutes: 10
         steps:

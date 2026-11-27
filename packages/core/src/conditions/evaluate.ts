@@ -4,7 +4,7 @@ export type FieldLookupResult =
 	| { readonly answered: false }
 	| { readonly answered: true; readonly value: unknown };
 
-/** Diz se um campo foi respondido (e está visível) e qual o valor. */
+/** Tells whether a field is answered (and visible), and its value. */
 export type FieldLookup = (fieldId: string) => FieldLookupResult;
 
 export function evaluateCondition(

@@ -6,36 +6,37 @@ import type { FieldBase } from '../schema/types.ts';
 import type { AnswerCheck } from '../validation/errors.ts';
 
 /**
- * Tudo que a lib precisa saber sobre um tipo de campo. Os tipos nativos são
- * definidos com esta mesma interface, e tipos customizados também.
+ * Everything the library needs to know about a field type. Built-in types
+ * use this same interface, and so do custom types.
  */
 export interface FieldTypeDefinition<
 	F extends FieldBase = FieldBase,
 	A = unknown,
 > {
 	readonly type: F['type'];
-	/** `false` pra blocos sem resposta (ex.: `section`). */
+	/** `false` for blocks without an answer (e.g. `section`). */
 	readonly answerable: boolean;
-	/** Operadores que outras condições podem usar referenciando este campo. */
+	/** Operators other conditions can use when referencing this field. */
 	readonly conditionOps: readonly ConditionOperator[];
 	/**
-	 * Valida e limpa as propriedades específicas do tipo (as comuns, como
-	 * `id`, `label` e `showIf`, a lib já trata). Problemas vão pro `reader`.
+	 * Validates and cleans the type-specific properties (the library already
+	 * handles common ones like `id`, `label` and `showIf`). Report problems
+	 * through the `reader`.
 	 */
 	parseConfig(reader: ConfigReader): Omit<F, keyof FieldBase>;
-	/** Resposta conta como "não respondida"? Padrão sugerido: null/undefined. */
+	/** Does the answer count as "unanswered"? Suggested default: null/undefined. */
 	isEmpty(value: unknown): boolean;
-	/** Valida uma resposta não vazia e devolve o valor normalizado. */
+	/** Validates a non-empty answer and returns the normalized value. */
 	validate(
 		value: unknown,
 		field: F,
 		context: ValidationContext,
 	): AnswerCheck<A>;
-	/** Valida o `value` de uma condição que referencia este campo. */
+	/** Validates the `value` of a condition that references this field. */
 	isValidConditionValue?(field: F, value: unknown): boolean;
 	/**
-	 * Texto legível de uma resposta válida, usado pelos exporters (qa-list,
-	 * CSV, Markdown). Sem ele, a lib converte o valor de forma genérica.
+	 * Readable text for a valid answer, used by the exporters (qa-list, CSV,
+	 * Markdown). Without it, the library converts the value generically.
 	 */
 	toDisplay?(value: A, field: F, context: DisplayContext): string;
 }
@@ -44,7 +45,7 @@ export interface ValidationContext {
 	readonly limits: Readonly<SchemaLimits>;
 }
 
-/** Ajuda a tipar um tipo de campo customizado. */
+/** Helps type a custom field type. */
 export function defineFieldType<F extends FieldBase, A>(
 	definition: FieldTypeDefinition<F, A>,
 ): FieldTypeDefinition<F, A> {

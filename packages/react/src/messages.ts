@@ -63,22 +63,22 @@ const es: MessageTable = {
 	too_many: (p) => `Selecciona como máximo ${p['max']}`,
 };
 
-const TABLES: Readonly<Record<string, MessageTable>> = { pt, en, es };
+const TABLES: Readonly<Record<string, MessageTable>> = { en, pt, es };
 
 /**
- * Mensagem padrão de um erro de validação, em `pt`, `en` ou `es` (outros
- * idiomas caem em `pt`). Pra mensagens próprias, passe `formatError` pro
+ * Default message for a validation error, in `en`, `pt` or `es` (other
+ * languages fall back to `en`). For your own messages, pass `formatError` to
  * `<FormRenderer>`.
  */
 export function defaultErrorMessage(
 	issue: AnswerIssue,
 	locale?: string,
 ): string {
-	const language = locale?.toLowerCase().split(/[-_]/)[0] ?? 'pt';
+	const language = locale?.toLowerCase().split(/[-_]/)[0] ?? 'en';
 	const table = Object.hasOwn(TABLES, language)
 		? (TABLES[language] as MessageTable)
-		: pt;
-	// Código desconhecido (tipo customizado que inventou um): mensagem genérica.
+		: en;
+	// Unknown code (a custom type made one up): generic message.
 	const message = Object.hasOwn(table, issue.code)
 		? table[issue.code]
 		: table.invalid_type;

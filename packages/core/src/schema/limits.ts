@@ -1,25 +1,25 @@
 /**
- * Limites aplicados a schemas e respostas. O schema costuma vir de usuários
- * (salvo no banco), então tudo tem teto pra não virar vetor de abuso.
+ * Limits applied to schemas and answers. Schemas usually come from users
+ * (stored in a database), so everything is capped to prevent abuse.
  */
 export interface SchemaLimits {
-	/** Máximo de campos em um formulário. */
+	/** Maximum number of fields in a form. */
 	readonly maxFields: number;
-	/** Máximo de opções em `choice` / `multiChoice`. */
+	/** Maximum number of options in `choice` / `multiChoice`. */
 	readonly maxOptions: number;
-	/** Tamanho máximo de labels, descrições e placeholders. */
+	/** Maximum length of labels, descriptions and placeholders. */
 	readonly maxTextLength: number;
-	/** Máximo de idiomas em um `LocalizedText`. */
+	/** Maximum number of languages in a `LocalizedText`. */
 	readonly maxLocales: number;
-	/** Profundidade máxima de aninhamento em `showIf`. */
+	/** Maximum nesting depth in `showIf`. */
 	readonly maxConditionDepth: number;
-	/** Máximo de nós (grupos + comparações) em um `showIf`. */
+	/** Maximum number of nodes (groups + comparisons) in a `showIf`. */
 	readonly maxConditionNodes: number;
-	/** Teto de caracteres de uma resposta `text`. */
+	/** Maximum characters in a `text` answer. */
 	readonly maxTextAnswerLength: number;
-	/** Teto de caracteres de uma resposta `longText`. */
+	/** Maximum characters in a `longText` answer. */
 	readonly maxLongTextAnswerLength: number;
-	/** Máximo de passos em uma `scale` (`max - min`). */
+	/** Maximum steps in a `scale` (`max - min`). */
 	readonly maxScaleSteps: number;
 }
 

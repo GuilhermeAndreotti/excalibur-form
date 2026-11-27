@@ -31,27 +31,27 @@ import {
 } from './use-excalibur-form.ts';
 
 export interface FormRendererBaseProps {
-	/** Troca o componente de um ou mais tipos (os demais usam o padrão). */
+	/** Replaces the component of one or more types (the rest use the defaults). */
 	readonly components?: FieldComponents;
-	/** Troca a moldura dos campos (label, descrição, erros). */
+	/** Replaces the field frame (label, description, errors). */
 	readonly FieldWrapper?: ComponentType<FieldWrapperProps>;
-	/** Idioma dos textos do schema e das mensagens padrão. */
+	/** Language for the schema texts and the default messages. */
 	readonly locale?: string;
 	readonly fallbackLocale?: string;
-	/** Sobrescreve "Sim"/"Não" e afins. */
+	/** Overrides "Yes"/"No" and the like. */
 	readonly labels?: Partial<DisplayLabels>;
-	/** Mensagem de cada erro. Padrão: `defaultErrorMessage` em pt/en/es. */
+	/** Message for each error. Default: `defaultErrorMessage` in en/pt/es. */
 	readonly formatError?: (
 		error: ValidationError,
 		locale: string | undefined,
 	) => string;
-	/** Texto do botão padrão. Padrão: "Enviar" (ou o equivalente no idioma). */
+	/** Default button text. Default: "Submit" (or its equivalent in the language). */
 	readonly submitLabel?: string;
-	/** Substitui o botão padrão (ex.: seus próprios botões). */
+	/** Replaces the default button (e.g. with your own buttons). */
 	readonly children?: ReactNode;
 	readonly disabled?: boolean;
 	readonly className?: string;
-	/** Foca o primeiro campo com erro quando o envio falha. Padrão: `true`. */
+	/** Focuses the first invalid field when a submit fails. Default: `true`. */
 	readonly focusOnError?: boolean;
 }
 
@@ -59,13 +59,13 @@ export type FormRendererProps<S extends FormSchema = FormSchema> =
 	FormRendererBaseProps &
 		(
 			| {
-					/** Estado vindo de `useExcaliburForm` (pra ler/controlar de fora). */
+					/** State from `useExcaliburForm` (to read/control it from outside). */
 					readonly controller: ExcaliburFormController<S>;
 			  }
 			| ({ readonly form: Form<S> } & UseExcaliburFormOptions<S>)
 		);
 
-/** Tipos nativos cujo input tem vários controles (usa `<fieldset>`). */
+/** Built-in types whose input has several controls (uses `<fieldset>`). */
 const GROUP_TYPES: ReadonlySet<string> = new Set([
 	'boolean',
 	'choice',
@@ -74,21 +74,21 @@ const GROUP_TYPES: ReadonlySet<string> = new Set([
 ]);
 
 const SUBMIT_LABELS: Readonly<Record<string, string>> = {
-	pt: 'Enviar',
 	en: 'Submit',
+	pt: 'Enviar',
 	es: 'Enviar',
 };
 
 function submitLabelFor(locale: string | undefined): string {
-	const language = locale?.toLowerCase().split(/[-_]/)[0] ?? 'pt';
+	const language = locale?.toLowerCase().split(/[-_]/)[0] ?? 'en';
 	return Object.hasOwn(SUBMIT_LABELS, language)
 		? (SUBMIT_LABELS[language] as string)
-		: 'Enviar';
+		: 'Submit';
 }
 
 /**
- * Renderiza um form inteiro: campos visíveis, erros e botão de envio.
- * Passe `form` (e as opções do hook) ou um `controller` de `useExcaliburForm`.
+ * Renders a whole form: visible fields, errors and the submit button.
+ * Pass `form` (plus the hook options) or a `controller` from `useExcaliburForm`.
  */
 export function FormRenderer<S extends FormSchema>(
 	props: FormRendererProps<S>,
@@ -127,7 +127,7 @@ function FormView<S extends FormSchema>(
 	const formatError = props.formatError ?? defaultErrorMessage;
 	const disabled = props.disabled === true || controller.isSubmitting;
 
-	// Depois de um envio inválido, leva o foco pro primeiro campo com erro.
+	// After an invalid submit, move focus to the first invalid field.
 	const { submitCount, result } = controller;
 	const lastSubmit = useRef(submitCount);
 	useEffect(() => {
