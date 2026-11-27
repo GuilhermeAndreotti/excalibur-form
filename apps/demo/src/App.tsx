@@ -2,6 +2,11 @@ import {
 	formatPath,
 	parseForm,
 	resolveText,
+	toCSV,
+	toEntries,
+	toJSON,
+	toMarkdown,
+	toQAList,
 	type BuiltinField,
 	type ParseResult,
 	type Form,
@@ -13,6 +18,41 @@ import { FieldInput } from './FieldInput.tsx';
 import { errorMessage } from './messages.ts';
 
 const pretty = (value: unknown) => JSON.stringify(value, null, 2);
+
+const EXPORTERS = {
+	json: {
+		label: 'toJSON',
+		run: (form: Form, data: Answers) => pretty(toJSON(form, data)),
+	},
+	qa: {
+		label: 'toQAList',
+		run: (form: Form, data: Answers, locale: string) =>
+			pretty(toQAList(form, data, { locale, includeSections: true })),
+	},
+	markdown: {
+		label: 'toMarkdown',
+		run: (form: Form, data: Answers, locale: string) =>
+			toMarkdown(form, data, { locale }),
+	},
+	csv: {
+		label: 'toCSV',
+		run: (form: Form, data: Answers, locale: string) =>
+			toCSV(form, [data], { locale, newline: '\n' }),
+	},
+	entries: {
+		label: 'toEntries (FormData)',
+		run: (form: Form, data: Answers) => pretty(toEntries(form, data)),
+	},
+} satisfies Record<
+	string,
+	{
+		label: string;
+		run: (form: Form, data: Answers, locale: string) => string;
+	}
+>;
+
+type Answers = Record<string, unknown>;
+type ExporterId = keyof typeof EXPORTERS;
 
 function parseText(
 	text: string,
@@ -32,6 +72,7 @@ export function App() {
 	const [answers, setAnswers] = useState<Record<string, unknown>>({});
 	const [submitted, setSubmitted] = useState(false);
 	const [locale, setLocale] = useState('pt');
+	const [exporter, setExporter] = useState<ExporterId>('qa');
 
 	const parsed = useMemo(() => parseText(schemaText), [schemaText]);
 	// Mantém o último form válido na tela enquanto o JSON está sendo editado.
@@ -251,6 +292,28 @@ export function App() {
 						</span>
 					</h3>
 					<pre className="code">{pretty(result ?? null)}</pre>
+					<h3 className="sub">
+						Exportar{' '}
+						<select
+							value={exporter}
+							onChange={(e) =>
+								setExporter(e.target.value as ExporterId)
+							}
+						>
+							{Object.entries(EXPORTERS).map(
+								([id, { label }]) => (
+									<option key={id} value={id}>
+										{label}
+									</option>
+								),
+							)}
+						</select>
+					</h3>
+					<pre className="code">
+						{form && result?.ok
+							? EXPORTERS[exporter].run(form, result.data, locale)
+							: 'Preencha o form sem erros pra ver a exportação.'}
+					</pre>
 					<h3 className="sub">Respostas cruas (estado do form)</h3>
 					<pre className="code">{pretty(answers)}</pre>
 					<h3 className="sub">Campos visíveis</h3>

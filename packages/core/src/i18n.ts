@@ -4,9 +4,22 @@
  */
 export type LocalizedText = string | { readonly [locale: string]: string };
 
+function pick(
+	text: { readonly [locale: string]: string },
+	locale: string | undefined,
+): string | undefined {
+	if (locale === undefined) return undefined;
+	if (Object.hasOwn(text, locale)) return text[locale];
+	// `pt-BR` cai em `pt`.
+	const language = locale.split(/[-_]/)[0] ?? '';
+	return language !== locale && Object.hasOwn(text, language)
+		? text[language]
+		: undefined;
+}
+
 /**
- * Resolve um `LocalizedText` para uma string. Tenta `locale`, depois
- * `fallbackLocale`, depois o primeiro valor do mapa.
+ * Resolve um `LocalizedText` para uma string. Tenta `locale` (e o idioma sem
+ * região, `pt-BR` → `pt`), depois `fallbackLocale`, depois o primeiro valor.
  */
 export function resolveText(
 	text: LocalizedText,
@@ -14,11 +27,10 @@ export function resolveText(
 	fallbackLocale?: string,
 ): string {
 	if (typeof text === 'string') return text;
-	if (locale !== undefined && Object.hasOwn(text, locale)) {
-		return text[locale] as string;
-	}
-	if (fallbackLocale !== undefined && Object.hasOwn(text, fallbackLocale)) {
-		return text[fallbackLocale] as string;
-	}
-	return Object.values(text)[0] ?? '';
+	return (
+		pick(text, locale) ??
+		pick(text, fallbackLocale) ??
+		Object.values(text)[0] ??
+		''
+	);
 }

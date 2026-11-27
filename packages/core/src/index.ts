@@ -1,6 +1,29 @@
 export { evaluateCondition } from './conditions/evaluate.ts';
 export type { FieldLookup, FieldLookupResult } from './conditions/evaluate.ts';
 export type * from './conditions/types.ts';
+export { toCSV } from './export/csv.ts';
+export type { CSVOptions } from './export/csv.ts';
+export {
+	createDisplayContext,
+	DISPLAY_LABELS,
+	formatNumber,
+} from './export/display.ts';
+export type {
+	DisplayContext,
+	DisplayLabels,
+	DisplayOptions,
+} from './export/display.ts';
+export { toEntries, toFormData } from './export/form-data.ts';
+export { toJSON } from './export/json.ts';
+export { escapeMarkdown, toMarkdown } from './export/markdown.ts';
+export type { MarkdownOptions } from './export/markdown.ts';
+export { toQAList } from './export/qa-list.ts';
+export type {
+	QAAnswer,
+	QAItem,
+	QAListOptions,
+	QASection,
+} from './export/qa-list.ts';
 export { defineFieldType } from './fields/definition.ts';
 export type {
 	FieldTypeDefinition,

@@ -94,7 +94,7 @@ O scope `@excalibur-form` no npm fica pra quando for publicar.
 | `markdown` / `html` | email e relatório                                                |
 | `json-schema`       | interoperar com outras ferramentas                               |
 
-Cada tipo de campo ganha um `toDisplay(value, field, locale)` pra isso.
+Cada tipo de campo ganha um `toDisplay(value, field, context)` pra isso (`context` traz idioma, textos fixos como "Sim"/"Não" e `text()` pra resolver `LocalizedText`). Fase 2 entregou `json`, `qa-list`, `formData` (+ `toEntries`), `csv` e `markdown`; `html` e `json-schema` ficam pra depois.
 
 ## 4. Versionamento
 
@@ -126,7 +126,7 @@ Cada tipo de campo ganha um `toDisplay(value, field, locale)` pra isso.
 | **0** | Monorepo, tooling, CI (format, lint, typecheck, test, build)                               | ✅     |
 | **1** | Core: schema + parse, registry, 8 tipos, validação, condições, inferência de tipos, testes | ✅     |
 | **—** | Demo (`apps/demo`)                                                                         | ✅     |
-| **2** | Exporters (json, qa-list, formData, csv, markdown)                                         |        |
+| **2** | Exporters (json, qa-list, formData, csv, markdown)                                         | ✅     |
 | **3** | `@excalibur-form/react` (a demo passa a usar ele)                                          |        |
 | **4** | Builder                                                                                    |        |
 | **5** | Versionamento, docs, publicar **v0.1**                                                     |        |

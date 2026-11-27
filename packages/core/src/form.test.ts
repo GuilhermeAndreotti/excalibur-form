@@ -295,6 +295,8 @@ describe('resolveText', () => {
 		const text = { pt: 'Olá', en: 'Hello' };
 		expect(resolveText('Oi')).toBe('Oi');
 		expect(resolveText(text, 'en')).toBe('Hello');
+		expect(resolveText(text, 'en-US')).toBe('Hello');
+		expect(resolveText(text, 'es-AR', 'en_GB')).toBe('Hello');
 		expect(resolveText(text, 'es', 'pt')).toBe('Olá');
 		expect(resolveText(text, 'es')).toBe('Olá');
 		expect(resolveText({}, 'es')).toBe('');

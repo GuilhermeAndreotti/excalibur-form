@@ -11,6 +11,7 @@ export const booleanFieldType: FieldTypeDefinition<BooleanField, boolean> = {
 	validate: (value) =>
 		typeof value === 'boolean' ? accept(value) : reject('invalid_type'),
 	isValidConditionValue: (_field, value) => typeof value === 'boolean',
+	toDisplay: (value, _field, { labels }) => (value ? labels.yes : labels.no),
 };
 
 export const sectionFieldType: FieldTypeDefinition<SectionField, never> = {

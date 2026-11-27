@@ -1,4 +1,5 @@
 import type { ConditionOperator } from '../conditions/types.ts';
+import type { DisplayContext } from '../export/display.ts';
 import type { SchemaLimits } from '../schema/limits.ts';
 import type { ConfigReader } from '../schema/reader.ts';
 import type { FieldBase } from '../schema/types.ts';
@@ -32,6 +33,11 @@ export interface FieldTypeDefinition<
 	): AnswerCheck<A>;
 	/** Valida o `value` de uma condição que referencia este campo. */
 	isValidConditionValue?(field: F, value: unknown): boolean;
+	/**
+	 * Texto legível de uma resposta válida, usado pelos exporters (qa-list,
+	 * CSV, Markdown). Sem ele, a lib converte o valor de forma genérica.
+	 */
+	toDisplay?(value: A, field: F, context: DisplayContext): string;
 }
 
 export interface ValidationContext {

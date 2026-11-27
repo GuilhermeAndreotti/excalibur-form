@@ -1,3 +1,4 @@
+import { formatNumber } from '../../export/display.ts';
 import { stripUndefined } from '../../internal/guards.ts';
 import type { NumberField, ScaleField } from '../../schema/types.ts';
 import { accept, reject } from '../../validation/errors.ts';
@@ -51,6 +52,7 @@ export const numberFieldType: FieldTypeDefinition<NumberField, number> = {
 	},
 	isValidConditionValue: (_field, value) =>
 		typeof value === 'number' && Number.isFinite(value),
+	toDisplay: (value, _field, context) => formatNumber(value, context),
 };
 
 export const SCALE_DEFAULT_MIN = 1;
@@ -106,4 +108,5 @@ export const scaleFieldType: FieldTypeDefinition<ScaleField, number> = {
 	},
 	isValidConditionValue: (_field, value) =>
 		typeof value === 'number' && Number.isFinite(value),
+	toDisplay: (value, _field, context) => formatNumber(value, context),
 };

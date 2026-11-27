@@ -17,7 +17,7 @@ schema (JSON) ──► parseForm / defineForm ──► form
 - **Seguro pra schema vindo de usuário**: tudo é validado e limitado, sem `eval` e sem regex vinda de fora.
 - **Headless**: não renderiza nada, então funciona com qualquer UI.
 
-> **Status:** em desenvolvimento (fase 1 de 6, veja o [roadmap](docs/PLAN.md)). O core funciona e é testado, mas ainda não está publicado no npm e a API pode mudar.
+> **Status:** em desenvolvimento (fase 2 de 6, veja o [roadmap](docs/PLAN.md)). O core funciona e é testado, mas ainda não está publicado no npm e a API pode mudar.
 
 ---
 
@@ -36,6 +36,7 @@ schema (JSON) ──► parseForm / defineForm ──► form
 - [Textos em vários idiomas](#textos-em-vários-idiomas)
 - [Renderizando o form (exemplo em React)](#renderizando-o-form-exemplo-em-react)
 - [Usando no backend](#usando-no-backend)
+- [Exportando respostas](#exportando-respostas)
 - [Tipos de campo customizados](#tipos-de-campo-customizados)
 - [Limites e segurança](#limites-e-segurança)
 - [Referência da API](#referência-da-api)
@@ -782,6 +783,67 @@ Dicas:
 
 ---
 
+## Exportando respostas
+
+Depois de validar, `result.data` pode sair em vários formatos. Os exporters recebem o `form` e os dados **já validados** (eles não validam de novo, mas descartam campos escondidos e chaves desconhecidas). Todos seguem a ordem do schema e usam a `key` do campo (padrão: o `id`).
+
+```ts
+import {
+	toCSV,
+	toEntries,
+	toFormData,
+	toJSON,
+	toMarkdown,
+	toQAList,
+} from '@excalibur-form/core';
+
+const result = form.validate(answers);
+if (result.ok) {
+	toJSON(form, result.data);
+	// { placa: 'ABC1D23', opcionais: ['teto', 'ar'], tem_multa: true }
+
+	toQAList(form, result.data, { locale: 'pt-BR' });
+	// [{ kind: 'answer', question: 'Placa', answer: 'ABC1D23', value: 'ABC1D23', ... },
+	//  { kind: 'answer', question: 'Opcionais', answer: 'Teto solar, Ar', value: ['teto', 'ar'], ... },
+	//  { kind: 'answer', question: 'Possui multas?', answer: 'Sim', value: true, ... }]
+
+	toMarkdown(form, result.data);
+	// # Vistoria
+	//
+	// ## Dados do veículo
+	//
+	// - **Placa:** ABC1D23
+	// - **Opcionais:** Teto solar, Ar
+	// - **Possui multas?:** Sim
+
+	toFormData(form, result.data); // FormData: listas viram várias entradas com a mesma chave
+	toEntries(form, result.data); // os mesmos pares [key, valor], ex.: new URLSearchParams(...)
+}
+
+// Várias submissões viram linhas de um CSV
+toCSV(form, submissions, { delimiter: ';', bom: true }); // pronto pro Excel em português
+```
+
+| Função                          | Saída                                                                         |
+| ------------------------------- | ----------------------------------------------------------------------------- |
+| `toJSON(form, data)`            | `{ key: valor }` com os valores crus (ids das opções)                         |
+| `toQAList(form, data, opts?)`   | `[{ question, answer, value, ... }]` legível; com seções, se pedir            |
+| `toMarkdown(form, data, opts?)` | Markdown com título, seções e lista; texto do usuário escapado                |
+| `toCSV(form, rows, opts?)`      | CSV (RFC 4180), uma coluna por campo; campo escondido vira célula vazia       |
+| `toFormData(form, data)`        | `FormData` pronto pra `fetch`                                                 |
+| `toEntries(form, data)`         | `[key, string][]`: booleanos viram `"true"`/`"false"` e listas, várias linhas |
+
+Opções:
+
+- **Todos os legíveis** (`toQAList`, `toMarkdown`, `toCSV`): `locale`, `fallbackLocale` e `labels` (`{ yes, no, listSeparator }`, pra trocar "Sim"/"Não"). Números são formatados no idioma pedido (`1.234,5` em `pt-BR`). Sem `locale`, os textos fixos saem em português e os números sem formatação.
+- **`toQAList`**: `includeUnanswered` (campos visíveis sem resposta, com `emptyAnswer`), `includeSections` (`section` vira item de título; seção sem nenhuma resposta depois some).
+- **`toMarkdown`**: as mesmas, mais `title` (padrão `true`). Seções entram por padrão e `emptyAnswer` é `—`.
+- **`toCSV`**: `header: 'label' | 'key'`, `values: 'display' | 'raw'`, `delimiter`, `newline`, `bom` e `escapeFormulas` (padrão `true`: texto que começa com `=`, `+`, `-` ou `@` ganha um `'` na frente pra planilha não executar como fórmula).
+
+O texto legível de cada tipo vem do `toDisplay` dele: `choice` mostra o label da opção, `boolean` mostra "Sim"/"Não" e por aí vai. Tipos customizados podem definir o seu (veja abaixo).
+
+---
+
 ## Tipos de campo customizados
 
 Os tipos nativos são implementados com a mesma API que você usa pra criar os seus.
@@ -827,6 +889,10 @@ const cpfType = defineFieldType<CpfField, string>({
 			? accept(digits)
 			: reject('invalid_format', { format: 'cpf' });
 	},
+
+	// Opcional: texto legível nos exporters (qa-list, CSV, Markdown)
+	toDisplay: (value) =>
+		`${value.slice(0, 3)}.${value.slice(3, 6)}.${value.slice(6, 9)}-${value.slice(9)}`,
 });
 
 // 3. Registre junto com os nativos
@@ -886,7 +952,11 @@ O que é com você:
 | `form.visibleFieldIds(answers)`                                  | `Set` com os ids visíveis (inclui `section`)                                                    |
 | `form.field(id)`                                                 | Campo pelo id                                                                                   |
 | `form.answerableFields`                                          | Campos com resposta (sem `section`), em ordem                                                   |
-| `form.schema` / `form.limits`                                    | Schema parseado (congelado) e limites em uso                                                    |
+| `form.schema` / `form.limits` / `form.registry`                  | Schema parseado (congelado), limites e registry em uso                                          |
+| `toJSON` / `toQAList` / `toMarkdown` / `toCSV`                   | Exporters (veja [Exportando respostas](#exportando-respostas))                                  |
+| `toFormData` / `toEntries`                                       | Respostas no formato de envio de formulário                                                     |
+| `escapeMarkdown(text)`                                           | Escapa texto pra aparecer literal em Markdown                                                   |
+| `createDisplayContext(opts?)` / `DISPLAY_LABELS`                 | Contexto que o `toDisplay` recebe e textos padrão ("Sim"/"Não") por idioma                      |
 | `evaluateCondition(condition, lookup)`                           | Avalia uma condição isolada                                                                     |
 | `resolveText(text, locale?, fallback?)`                          | Resolve um `LocalizedText`                                                                      |
 | `scaleBounds(field)`                                             | `{ min, max }` de uma `scale` com padrões aplicados                                             |
@@ -928,7 +998,7 @@ Stack: TypeScript 7 (strict, `isolatedDeclarations`, `exactOptionalPropertyTypes
 - [x] **Fase 0**: monorepo, tooling, CI
 - [x] **Fase 1**: core (schema, 8 tipos de campo, condições, validação, tipos inferidos)
 - [x] Demo
-- [ ] **Fase 2**: exportadores (JSON por `key`, lista pergunta/resposta, CSV, FormData, Markdown)
+- [x] **Fase 2**: exportadores (JSON por `key`, lista pergunta/resposta, CSV, FormData, Markdown)
 - [ ] **Fase 3**: `@excalibur-form/react` (renderer headless com componentes trocáveis)
 - [ ] **Fase 4**: `@excalibur-form/builder` (montar o form visualmente)
 - [ ] **Fase 5**: versionamento de respostas, docs e publicação no npm

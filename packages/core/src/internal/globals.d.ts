@@ -4,3 +4,8 @@ declare class URL {
 	constructor(url: string, base?: string);
 	readonly protocol: string;
 }
+
+declare class FormData {
+	constructor();
+	append(name: string, value: string): void;
+}

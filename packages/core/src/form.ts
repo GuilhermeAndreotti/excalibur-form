@@ -1,6 +1,6 @@
 import { evaluateCondition } from './conditions/evaluate.ts';
 import type { FieldTypeDefinition } from './fields/definition.ts';
-import { defaultRegistry } from './fields/registry.ts';
+import { defaultRegistry, type FieldRegistry } from './fields/registry.ts';
 import type { InferAnswers } from './infer.ts';
 import { hasOwn, isRecord } from './internal/guards.ts';
 import { FormSchemaError } from './schema/issues.ts';
@@ -20,6 +20,8 @@ export type AnswerInput = Readonly<Record<string, unknown>>;
 export interface Form<S extends FormSchema = FormSchema> {
 	readonly schema: S;
 	readonly limits: Readonly<SchemaLimits>;
+	/** Registry de tipos usado no parse (os exporters usam o `toDisplay`). */
+	readonly registry: FieldRegistry;
 	/** Campo pelo `id`. */
 	field(id: string): S['fields'][number] | undefined;
 	/** Campos com resposta (sem `section`), na ordem do schema. */
@@ -78,6 +80,7 @@ function buildForm<S extends FormSchema>(
 	return Object.freeze({
 		schema,
 		limits,
+		registry,
 		field: (id: string) => byId.get(id),
 		answerableFields: Object.freeze(
 			resolved.filter((r) => r.definition.answerable).map((r) => r.field),

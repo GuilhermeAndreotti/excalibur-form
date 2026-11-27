@@ -101,6 +101,7 @@ export const textFieldType: FieldTypeDefinition<TextField, string> = {
 		return check;
 	},
 	isValidConditionValue: (_field, value) => typeof value === 'string',
+	toDisplay: (value) => value,
 };
 
 export const longTextFieldType: FieldTypeDefinition<LongTextField, string> = {
@@ -125,4 +126,5 @@ export const longTextFieldType: FieldTypeDefinition<LongTextField, string> = {
 			field.maxLength ?? limits.maxLongTextAnswerLength,
 		),
 	isValidConditionValue: (_field, value) => typeof value === 'string',
+	toDisplay: (value) => value,
 };

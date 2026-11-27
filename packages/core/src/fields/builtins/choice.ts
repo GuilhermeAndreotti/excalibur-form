@@ -1,3 +1,4 @@
+import type { DisplayContext } from '../../export/display.ts';
 import { stripUndefined } from '../../internal/guards.ts';
 import type {
 	ChoiceField,
@@ -6,6 +7,15 @@ import type {
 } from '../../schema/types.ts';
 import { accept, reject } from '../../validation/errors.ts';
 import { isNullish, type FieldTypeDefinition } from '../definition.ts';
+
+function optionLabel(
+	options: readonly ChoiceOption[],
+	id: string,
+	context: DisplayContext,
+): string {
+	const option = options.find((o) => o.id === id);
+	return option === undefined ? id : context.text(option.label);
+}
 
 function hasOption(options: readonly ChoiceOption[], id: unknown): boolean {
 	return typeof id === 'string' && options.some((option) => option.id === id);
@@ -27,6 +37,8 @@ export const choiceFieldType: FieldTypeDefinition<ChoiceField, string> = {
 		return accept(value);
 	},
 	isValidConditionValue: (field, value) => hasOption(field.options, value),
+	toDisplay: (value, field, context) =>
+		optionLabel(field.options, value, context),
 };
 
 export const multiChoiceFieldType: FieldTypeDefinition<
@@ -85,4 +97,8 @@ export const multiChoiceFieldType: FieldTypeDefinition<
 		return accept([...seen]);
 	},
 	isValidConditionValue: (field, value) => hasOption(field.options, value),
+	toDisplay: (value, field, context) =>
+		value
+			.map((id) => optionLabel(field.options, id, context))
+			.join(context.labels.listSeparator),
 };
